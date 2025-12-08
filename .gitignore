@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.eggs/
+*.egg-info/
+*.egg
+
+# Build outputs
+dist/
+build/
+*.manifest
+*.spec
+frontend/src-tauri/target/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.vitest/
+coverage/
+
+# Runtime data
+backend/data/cybersec.db
+backend/data/audit_logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tauri
+frontend/src-tauri/target/
+frontend/src-tauri/WixTools/
+frontend/src-tauri/Cargo.lock
+
+# TypeScript
+*.tsbuildinfo
+
+# Misc
+*.bak
+*.tmp

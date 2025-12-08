@@ -1,0 +1,38 @@
+/* Protanopia Theme - Red-blind safe palette */
+/* Avoids red-green distinctions, uses blue-yellow spectrum */
+[data-color-mode='protanopia'] {
+  --color-background: #ffffff;
+  --color-foreground: #1a1a2e;
+
+  --color-primary: #0066cc;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #f0f4f8;
+  --color-secondary-foreground: #1e293b;
+
+  --color-muted: #f8fafc;
+  --color-muted-foreground: #64748b;
+
+  --color-accent: #e0e8f0;
+  --color-accent-foreground: #0f172a;
+
+  --color-destructive: #cc6600;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #d0d8e0;
+  --color-ring: #0066cc;
+
+  /* Severity colors - protanopia safe
+     Using blue-yellow spectrum with varying brightness/saturation */
+  --color-severity-critical: #cc6600; /* Orange (replaces red) */
+  --color-severity-high: #997300; /* Dark yellow/gold */
+  --color-severity-medium: #ccaa00; /* Yellow */
+  --color-severity-low: #0066cc; /* Blue (replaces green) */
+
+  --color-success: #0066cc;
+  --color-success-foreground: #ffffff;
+  --color-info: #0099cc;
+  --color-info-foreground: #ffffff;
+  --color-warning: #cc9900;
+  --color-warning-foreground: #1a1a2e;
+}

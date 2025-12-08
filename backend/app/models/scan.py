@@ -1,0 +1,26 @@
+"""Scan model for network scan operations."""
+
+from sqlalchemy import Column, String, DateTime, Text
+
+from app.models.base import Base, IdMixin, TimestampMixin
+
+
+class Scan(Base, IdMixin, TimestampMixin):
+    """Represents a network scan operation."""
+
+    __tablename__ = "scans"
+
+    network_id = Column(String(36), nullable=False, index=True)
+    timestamp = Column(DateTime, nullable=False)
+    scan_type = Column(String(20), nullable=False)  # quick, deep
+    status = Column(String(20), nullable=False)  # pending, in_progress, completed, stopped, failed
+
+    # Scan configuration
+    target_range = Column(String(50), nullable=True)  # e.g., "192.168.1.0/24"
+    port_range = Column(String(100), nullable=True)  # e.g., "1-1024" or "1-65535"
+
+    # Results summary (JSON stored as text)
+    results_summary = Column(Text, nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<Scan(id={self.id}, type={self.scan_type}, status={self.status})>"

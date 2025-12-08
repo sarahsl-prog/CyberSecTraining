@@ -1,0 +1,39 @@
+/* Tritanopia Theme - Blue-blind safe palette */
+/* Rare (~0.01% of population) */
+/* Avoids blue-yellow distinctions, uses red-green spectrum */
+[data-color-mode='tritanopia'] {
+  --color-background: #ffffff;
+  --color-foreground: #1a1a2e;
+
+  --color-primary: #cc3366;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #f4f0f2;
+  --color-secondary-foreground: #1e293b;
+
+  --color-muted: #faf8f9;
+  --color-muted-foreground: #64748b;
+
+  --color-accent: #f0e0e8;
+  --color-accent-foreground: #0f172a;
+
+  --color-destructive: #cc0033;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #e0d0d8;
+  --color-ring: #cc3366;
+
+  /* Severity colors - tritanopia safe
+     Using red-cyan spectrum (blue-yellow is difficult to distinguish) */
+  --color-severity-critical: #cc0033; /* Red */
+  --color-severity-high: #cc3366; /* Pink/Magenta */
+  --color-severity-medium: #009999; /* Cyan */
+  --color-severity-low: #339966; /* Teal-green */
+
+  --color-success: #339966;
+  --color-success-foreground: #ffffff;
+  --color-info: #009999;
+  --color-info-foreground: #ffffff;
+  --color-warning: #cc6633;
+  --color-warning-foreground: #ffffff;
+}

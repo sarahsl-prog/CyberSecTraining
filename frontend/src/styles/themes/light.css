@@ -1,0 +1,38 @@
+/* Light Theme - Default */
+:root,
+[data-color-mode='light'] {
+  --color-background: #ffffff;
+  --color-foreground: #1a1a2e;
+
+  --color-primary: #2563eb;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #f1f5f9;
+  --color-secondary-foreground: #1e293b;
+
+  --color-muted: #f8fafc;
+  --color-muted-foreground: #64748b;
+
+  --color-accent: #e2e8f0;
+  --color-accent-foreground: #0f172a;
+
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #e2e8f0;
+  --color-ring: #2563eb;
+
+  /* Severity colors - distinguishable without relying solely on hue */
+  --color-severity-critical: #dc2626; /* Red with high saturation */
+  --color-severity-high: #ea580c; /* Orange */
+  --color-severity-medium: #ca8a04; /* Amber/Yellow */
+  --color-severity-low: #16a34a; /* Green */
+
+  /* Success and info */
+  --color-success: #16a34a;
+  --color-success-foreground: #ffffff;
+  --color-info: #0284c7;
+  --color-info-foreground: #ffffff;
+  --color-warning: #ca8a04;
+  --color-warning-foreground: #1a1a2e;
+}

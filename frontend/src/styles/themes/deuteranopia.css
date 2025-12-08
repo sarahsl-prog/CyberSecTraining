@@ -1,0 +1,39 @@
+/* Deuteranopia Theme - Green-blind safe palette */
+/* Most common form of color blindness (~5% of males) */
+/* Avoids red-green distinctions, uses blue-yellow spectrum */
+[data-color-mode='deuteranopia'] {
+  --color-background: #ffffff;
+  --color-foreground: #1a1a2e;
+
+  --color-primary: #0055aa;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #f0f4f8;
+  --color-secondary-foreground: #1e293b;
+
+  --color-muted: #f8fafc;
+  --color-muted-foreground: #64748b;
+
+  --color-accent: #e0e8f0;
+  --color-accent-foreground: #0f172a;
+
+  --color-destructive: #bb5500;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #d0d8e0;
+  --color-ring: #0055aa;
+
+  /* Severity colors - deuteranopia safe
+     Using blue-orange spectrum with varying brightness */
+  --color-severity-critical: #bb5500; /* Dark orange (replaces red) */
+  --color-severity-high: #cc7700; /* Medium orange */
+  --color-severity-medium: #ccaa00; /* Yellow/gold */
+  --color-severity-low: #0055aa; /* Blue (replaces green) */
+
+  --color-success: #0055aa;
+  --color-success-foreground: #ffffff;
+  --color-info: #0088bb;
+  --color-info-foreground: #ffffff;
+  --color-warning: #cc9900;
+  --color-warning-foreground: #1a1a2e;
+}

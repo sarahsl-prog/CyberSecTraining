@@ -1,0 +1,35 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+}
+
+.main {
+  flex: 1;
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+}
+
+/* Remove focus outline when clicking, but show for keyboard nav */
+.main:focus {
+  outline: none;
+}
+
+.main:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: -2px;
+}
+
+/* Responsive: stack on mobile */
+@media (max-width: 768px) {
+  .body {
+    flex-direction: column;
+  }
+}

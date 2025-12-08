@@ -1,0 +1,36 @@
+/* High Contrast Theme - Maximum visibility */
+[data-color-mode='high-contrast'] {
+  --color-background: #000000;
+  --color-foreground: #ffffff;
+
+  --color-primary: #ffff00;
+  --color-primary-foreground: #000000;
+
+  --color-secondary: #1a1a1a;
+  --color-secondary-foreground: #ffffff;
+
+  --color-muted: #1a1a1a;
+  --color-muted-foreground: #e0e0e0;
+
+  --color-accent: #333333;
+  --color-accent-foreground: #ffffff;
+
+  --color-destructive: #ff0000;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #ffffff;
+  --color-ring: #ffff00;
+
+  /* Severity colors - maximum contrast */
+  --color-severity-critical: #ff0000;
+  --color-severity-high: #ff8c00;
+  --color-severity-medium: #ffff00;
+  --color-severity-low: #00ff00;
+
+  --color-success: #00ff00;
+  --color-success-foreground: #000000;
+  --color-info: #00ffff;
+  --color-info-foreground: #000000;
+  --color-warning: #ffff00;
+  --color-warning-foreground: #000000;
+}
