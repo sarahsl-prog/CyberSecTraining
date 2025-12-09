@@ -1,0 +1,143 @@
+{
+  "guides": [
+    {
+      "vuln_id": "default_credentials",
+      "title": "How to Change Default Credentials",
+      "difficulty": "easy",
+      "time_estimate": "5-10 minutes",
+      "prerequisites": [
+        "Access to the device's admin interface",
+        "Knowledge of the current default credentials",
+        "A secure method to store the new password"
+      ],
+      "steps": [
+        "Open a web browser and navigate to the device's IP address",
+        "Log in using the default credentials (check device documentation or search online for 'default password [device model]')",
+        "Navigate to Administration, Settings, or User Management section",
+        "Look for options like 'Change Password', 'User Settings', or 'Security'",
+        "Enter your current (default) password when prompted",
+        "Create a new strong password: at least 12 characters with uppercase, lowercase, numbers, and symbols",
+        "Confirm the new password",
+        "Save the changes and log out",
+        "Test logging in with the new credentials",
+        "Store the new password securely (password manager recommended)"
+      ],
+      "verification": "Try logging in with the old default credentials - they should no longer work. Then verify you can log in with your new credentials.",
+      "common_mistakes": [
+        "Using a password that's too simple or short",
+        "Forgetting to save the changes",
+        "Not storing the new password securely",
+        "Using the same password as other devices"
+      ]
+    },
+    {
+      "vuln_id": "open_telnet",
+      "title": "How to Disable Telnet and Enable SSH",
+      "difficulty": "medium",
+      "time_estimate": "10-15 minutes",
+      "prerequisites": [
+        "Admin access to the device",
+        "SSH client software if you need remote access"
+      ],
+      "steps": [
+        "Log into the device's administration interface",
+        "Navigate to Remote Management, Services, or Administration settings",
+        "Find Telnet service settings",
+        "Disable Telnet",
+        "If remote access is needed, enable SSH in the same section",
+        "Configure SSH settings (port, authentication method)",
+        "Save changes and restart the device if required",
+        "Test that Telnet port 23 is no longer accessible",
+        "If you enabled SSH, test that you can connect via SSH client"
+      ],
+      "verification": "Use a port scanner or 'telnet [device-ip] 23' command to verify Telnet is no longer responding. If using SSH, test with 'ssh [username]@[device-ip]'.",
+      "common_mistakes": [
+        "Disabling Telnet without enabling SSH when remote access is needed",
+        "Not restarting the device when required",
+        "Forgetting to update firewall rules"
+      ]
+    },
+    {
+      "vuln_id": "open_smb",
+      "title": "How to Secure SMB File Sharing",
+      "difficulty": "medium",
+      "time_estimate": "15-30 minutes",
+      "prerequisites": [
+        "Admin access to the Windows system or NAS",
+        "Knowledge of which shares need to remain accessible"
+      ],
+      "steps": [
+        "Open Windows Features (Control Panel > Programs > Turn Windows features on or off)",
+        "Uncheck 'SMB 1.0/CIFS File Sharing Support' to disable SMBv1",
+        "Restart the computer",
+        "Open Computer Management > Shared Folders > Shares",
+        "Review all existing shares and remove unnecessary ones",
+        "For needed shares, right-click > Properties > Security",
+        "Remove 'Everyone' and add specific users/groups with minimum necessary permissions",
+        "Enable password-protected sharing in Network and Sharing Center",
+        "Configure Windows Firewall to restrict SMB access to specific IP ranges if needed",
+        "Enable SMB signing via Group Policy (Computer Configuration > Windows Settings > Security Settings > Local Policies > Security Options)"
+      ],
+      "verification": "Use 'net share' command to list active shares. Try accessing shares from another computer to verify authentication is required.",
+      "common_mistakes": [
+        "Not disabling SMBv1",
+        "Leaving guest access enabled",
+        "Setting overly permissive share permissions",
+        "Forgetting to restart after disabling SMBv1"
+      ]
+    },
+    {
+      "vuln_id": "upnp_enabled",
+      "title": "How to Disable UPnP",
+      "difficulty": "easy",
+      "time_estimate": "5-10 minutes",
+      "prerequisites": [
+        "Admin access to router"
+      ],
+      "steps": [
+        "Log into your router's administration interface",
+        "Navigate to Advanced Settings, NAT, or Firewall section",
+        "Find UPnP settings (may be under 'Advanced' or 'Services')",
+        "Disable UPnP",
+        "Save changes",
+        "Review the Port Forwarding section for any unexpected rules",
+        "Remove any port forwarding rules you don't recognize",
+        "Manually add port forwarding rules for legitimate services you need"
+      ],
+      "verification": "Use an online UPnP scanner or the GRC ShieldsUP! tool to verify UPnP is no longer responding.",
+      "common_mistakes": [
+        "Not checking for existing port forwarding rules created by UPnP",
+        "Forgetting to manually configure needed port forwarding",
+        "Not saving changes before closing the interface"
+      ]
+    },
+    {
+      "vuln_id": "open_rdp",
+      "title": "How to Secure Remote Desktop",
+      "difficulty": "medium",
+      "time_estimate": "20-30 minutes",
+      "prerequisites": [
+        "Admin access to Windows system",
+        "Understanding of your remote access needs"
+      ],
+      "steps": [
+        "If RDP is not needed, disable it: Settings > System > Remote Desktop > Off",
+        "If RDP is needed, enable Network Level Authentication (NLA)",
+        "Set up Windows Firewall to restrict RDP to specific IP addresses",
+        "Change the default RDP port from 3389 (optional but adds obscurity)",
+        "Enable account lockout policies (Local Security Policy > Account Policies)",
+        "Consider setting up a VPN for remote access instead of exposing RDP",
+        "Keep Windows updated with the latest security patches",
+        "Use strong passwords and consider multi-factor authentication",
+        "Set up Remote Desktop Gateway for additional security layer"
+      ],
+      "verification": "Test RDP access only works from approved IP addresses. Verify NLA is required for connections.",
+      "common_mistakes": [
+        "Exposing RDP directly to the internet without VPN",
+        "Not enabling NLA",
+        "Using weak passwords",
+        "Forgetting to apply firewall rules"
+      ]
+    }
+  ]
+}

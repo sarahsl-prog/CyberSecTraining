@@ -1,0 +1,43 @@
+{
+  "id": "unnecessary_services",
+  "title": "Unnecessary Services Running",
+  "severity": "low",
+  "description": "The device has services running that may not be necessary for its intended function. Each running service increases the attack surface and potential vulnerabilities. The principle of least privilege suggests disabling any services not actively needed.",
+  "detection_rules": [
+    {
+      "type": "port",
+      "port": 7,
+      "condition": "exists"
+    },
+    {
+      "type": "port",
+      "port": 9,
+      "condition": "exists"
+    },
+    {
+      "type": "port",
+      "port": 13,
+      "condition": "exists"
+    },
+    {
+      "type": "port",
+      "port": 19,
+      "condition": "exists"
+    },
+    {
+      "type": "port",
+      "port": 37,
+      "condition": "exists"
+    }
+  ],
+  "affected_device_types": ["server", "router", "workstation"],
+  "affected_services": ["echo", "discard", "daytime", "chargen", "time"],
+  "remediation": "1. Review all running services on the device\n2. Research the purpose of each service\n3. Disable services that are not needed for the device's function\n4. Document which services should remain enabled and why\n5. Test device functionality after disabling services\n6. Create a baseline of required services for future reference\n7. Periodically audit running services",
+  "references": [
+    "https://www.cisa.gov/news-events/alerts/2019/09/11/minimizing-attack-surface-through-unnecessary-service-elimination",
+    "https://csrc.nist.gov/publications/detail/sp/800-123/final"
+  ],
+  "cve_ids": [],
+  "mitre_attack": ["T1046", "T1059"],
+  "tags": ["hardening", "attack-surface", "best-practice"]
+}

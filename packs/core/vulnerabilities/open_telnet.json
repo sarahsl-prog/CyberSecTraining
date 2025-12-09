@@ -1,0 +1,28 @@
+{
+  "id": "open_telnet",
+  "title": "Open Telnet Service",
+  "severity": "high",
+  "description": "The device has Telnet (port 23) enabled and accessible. Telnet transmits all data, including passwords, in plain text without encryption. This means anyone on the network can potentially intercept login credentials and other sensitive information. Telnet should be replaced with SSH wherever possible.",
+  "detection_rules": [
+    {
+      "type": "port",
+      "port": 23,
+      "condition": "exists"
+    },
+    {
+      "type": "service",
+      "service": "telnet",
+      "condition": "exists"
+    }
+  ],
+  "affected_device_types": ["router", "switch", "server", "iot"],
+  "affected_services": ["telnet"],
+  "remediation": "1. Access the device's administration interface\n2. Navigate to remote access or management settings\n3. Disable Telnet service completely\n4. Enable SSH (Secure Shell) as a secure alternative if remote access is needed\n5. If Telnet cannot be disabled, restrict access to specific IP addresses\n6. Consider using a VPN for remote management",
+  "references": [
+    "https://www.cisa.gov/news-events/alerts/2017/10/20/advanced-persistent-threat-activity-targeting-energy-and-other",
+    "https://nvd.nist.gov/vuln/detail/CVE-2018-10561"
+  ],
+  "cve_ids": [],
+  "mitre_attack": ["T1021.001", "T1557"],
+  "tags": ["network-service", "encryption", "remote-access"]
+}

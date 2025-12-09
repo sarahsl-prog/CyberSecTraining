@@ -1,0 +1,28 @@
+{
+  "id": "open_ftp",
+  "title": "Open FTP Service",
+  "severity": "high",
+  "description": "The device has FTP (File Transfer Protocol, port 21) enabled. Like Telnet, standard FTP transmits credentials and data in plain text. Additionally, many FTP servers allow anonymous access by default, potentially exposing sensitive files to anyone. SFTP or FTPS should be used instead.",
+  "detection_rules": [
+    {
+      "type": "port",
+      "port": 21,
+      "condition": "exists"
+    },
+    {
+      "type": "service",
+      "service": "ftp",
+      "condition": "exists"
+    }
+  ],
+  "affected_device_types": ["server", "nas", "router", "camera"],
+  "affected_services": ["ftp"],
+  "remediation": "1. Disable FTP if file transfer is not needed\n2. If file transfer is required, switch to SFTP (SSH File Transfer Protocol) or FTPS (FTP over TLS)\n3. Disable anonymous FTP access\n4. Use strong authentication for FTP accounts\n5. Restrict FTP access to specific IP addresses\n6. Ensure FTP root directory doesn't contain sensitive files",
+  "references": [
+    "https://owasp.org/www-community/vulnerabilities/Insecure_Transport",
+    "https://www.cisa.gov/uscert/ncas/tips/ST05-016"
+  ],
+  "cve_ids": [],
+  "mitre_attack": ["T1071.002", "T1557"],
+  "tags": ["network-service", "encryption", "file-transfer"]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "outdated_firmware",
+  "title": "Outdated Firmware",
+  "severity": "medium",
+  "description": "The device appears to be running outdated firmware. Firmware updates often contain critical security patches for known vulnerabilities. Devices with outdated firmware are vulnerable to exploits that have been publicly documented and may have readily available attack tools.",
+  "detection_rules": [
+    {
+      "type": "banner",
+      "pattern": ".*",
+      "condition": "exists"
+    }
+  ],
+  "affected_device_types": ["router", "access_point", "camera", "iot", "nas", "printer"],
+  "affected_services": ["http", "https", "ssh", "telnet"],
+  "remediation": "1. Note the current firmware version from the device's admin interface\n2. Visit the manufacturer's support website\n3. Search for your device model and check for firmware updates\n4. Download the latest stable firmware (not beta versions)\n5. Backup your device configuration before updating\n6. Follow manufacturer instructions to apply the update\n7. Verify the update was successful\n8. Restore configuration if needed\n9. Enable automatic updates if available",
+  "references": [
+    "https://www.cisa.gov/news-events/alerts/2020/04/06/critical-vulnerability-affecting-zyxel-devices",
+    "https://nvd.nist.gov/"
+  ],
+  "cve_ids": [],
+  "mitre_attack": ["T1190", "T1203"],
+  "tags": ["firmware", "updates", "maintenance"]
+}

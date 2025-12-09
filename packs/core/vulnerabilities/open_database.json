@@ -1,0 +1,58 @@
+{
+  "id": "open_database",
+  "title": "Exposed Database Port",
+  "severity": "critical",
+  "description": "A database service (MySQL, PostgreSQL, MongoDB, Redis, etc.) is accessible on the network. Databases should never be directly exposed, as they often contain sensitive data and may have default credentials or known vulnerabilities. Attackers actively scan for exposed databases to steal data or install cryptominers.",
+  "detection_rules": [
+    {
+      "type": "port",
+      "port": 3306,
+      "condition": "exists"
+    },
+    {
+      "type": "port",
+      "port": 5432,
+      "condition": "exists"
+    },
+    {
+      "type": "port",
+      "port": 27017,
+      "condition": "exists"
+    },
+    {
+      "type": "port",
+      "port": 6379,
+      "condition": "exists"
+    },
+    {
+      "type": "service",
+      "service": "mysql",
+      "condition": "exists"
+    },
+    {
+      "type": "service",
+      "service": "postgresql",
+      "condition": "exists"
+    },
+    {
+      "type": "service",
+      "service": "mongodb",
+      "condition": "exists"
+    },
+    {
+      "type": "service",
+      "service": "redis",
+      "condition": "exists"
+    }
+  ],
+  "affected_device_types": ["server", "nas"],
+  "affected_services": ["mysql", "postgresql", "mongodb", "redis", "mssql"],
+  "remediation": "1. Bind database to localhost (127.0.0.1) only unless remote access is absolutely required\n2. Use a firewall to block database ports from external access\n3. Require authentication for all database connections\n4. Use strong, unique passwords for database accounts\n5. Enable TLS/SSL encryption for database connections\n6. Remove or disable default/test databases and users\n7. If remote access is needed, use SSH tunneling or VPN\n8. Regularly audit database user permissions",
+  "references": [
+    "https://www.cisa.gov/news-events/alerts/2020/03/02/meow-attack-wipes-unsecured-databases",
+    "https://owasp.org/www-community/attacks/SQL_Injection"
+  ],
+  "cve_ids": [],
+  "mitre_attack": ["T1213", "T1505.001"],
+  "tags": ["database", "data-exposure", "critical"]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "unencrypted_http",
+  "title": "Unencrypted HTTP Admin Interface",
+  "severity": "medium",
+  "description": "The device's administration interface is accessible only via unencrypted HTTP (port 80) without HTTPS support. This means login credentials and all administrative actions are transmitted in plain text, vulnerable to interception by anyone on the network.",
+  "detection_rules": [
+    {
+      "type": "port",
+      "port": 80,
+      "condition": "exists"
+    },
+    {
+      "type": "service",
+      "service": "http",
+      "condition": "exists"
+    }
+  ],
+  "affected_device_types": ["router", "access_point", "camera", "iot", "printer"],
+  "affected_services": ["http"],
+  "remediation": "1. Check if the device supports HTTPS and enable it\n2. If HTTPS is available, disable plain HTTP access\n3. Install a valid SSL/TLS certificate if possible\n4. If HTTPS is not supported, only access admin interface from wired connections\n5. Consider upgrading to a device that supports encrypted management\n6. Use a VPN when accessing the admin interface remotely",
+  "references": [
+    "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security"
+  ],
+  "cve_ids": [],
+  "mitre_attack": ["T1557", "T1040"],
+  "tags": ["encryption", "web-interface", "credentials"]
+}

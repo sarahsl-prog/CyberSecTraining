@@ -1,0 +1,28 @@
+{
+  "id": "open_snmp",
+  "title": "SNMP with Default Community String",
+  "severity": "high",
+  "description": "The device has SNMP (Simple Network Management Protocol) enabled with default community strings like 'public' or 'private'. SNMP can expose detailed system information and, with SNMPv1/v2c, transmits data without encryption. Attackers can use SNMP to gather reconnaissance data or even modify device configurations.",
+  "detection_rules": [
+    {
+      "type": "port",
+      "port": 161,
+      "condition": "exists"
+    },
+    {
+      "type": "service",
+      "service": "snmp",
+      "condition": "exists"
+    }
+  ],
+  "affected_device_types": ["router", "switch", "printer", "server", "nas"],
+  "affected_services": ["snmp"],
+  "remediation": "1. Disable SNMP if not actively used for network management\n2. If SNMP is needed, upgrade to SNMPv3 which provides encryption and authentication\n3. Change default community strings to complex, unique values\n4. Restrict SNMP access to specific management IP addresses\n5. Use read-only community strings where possible\n6. Disable SNMP write access unless absolutely necessary",
+  "references": [
+    "https://www.cisa.gov/news-events/cybersecurity-advisories/aa20-245a",
+    "https://attack.mitre.org/techniques/T1602/"
+  ],
+  "cve_ids": [],
+  "mitre_attack": ["T1602", "T1046"],
+  "tags": ["network-service", "information-disclosure", "management"]
+}
