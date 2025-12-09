@@ -1,0 +1,38 @@
+/**
+ * EmptyState component styles.
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-xl);
+  min-height: 200px;
+}
+
+.icon {
+  font-size: 3rem;
+  color: var(--color-muted-foreground);
+  margin-bottom: var(--spacing-md);
+  opacity: 0.6;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.description {
+  margin: var(--spacing-sm) 0 0;
+  font-size: 0.875rem;
+  color: var(--color-muted-foreground);
+  max-width: 40ch;
+}
+
+.action {
+  margin-top: var(--spacing-lg);
+}

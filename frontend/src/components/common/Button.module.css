@@ -1,0 +1,135 @@
+/**
+ * Button component styles.
+ */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+  border: 1px solid transparent;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+
+  /* WCAG 2.1 AA - Minimum touch target size */
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.button:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+/* Variants */
+.variant-primary {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  border-color: var(--color-primary);
+}
+
+.variant-primary:not(:disabled):hover {
+  background: var(--color-primary-hover, color-mix(in srgb, var(--color-primary) 90%, black));
+}
+
+.variant-secondary {
+  background: var(--color-secondary);
+  color: var(--color-secondary-foreground);
+  border-color: var(--color-secondary);
+}
+
+.variant-secondary:not(:disabled):hover {
+  background: var(--color-secondary-hover, color-mix(in srgb, var(--color-secondary) 90%, black));
+}
+
+.variant-outline {
+  background: transparent;
+  color: var(--color-foreground);
+  border-color: var(--color-border);
+}
+
+.variant-outline:not(:disabled):hover {
+  background: var(--color-muted);
+  border-color: var(--color-border);
+}
+
+.variant-ghost {
+  background: transparent;
+  color: var(--color-foreground);
+  border-color: transparent;
+}
+
+.variant-ghost:not(:disabled):hover {
+  background: var(--color-muted);
+}
+
+.variant-destructive {
+  background: var(--color-destructive);
+  color: var(--color-destructive-foreground);
+  border-color: var(--color-destructive);
+}
+
+.variant-destructive:not(:disabled):hover {
+  background: var(--color-destructive-hover, color-mix(in srgb, var(--color-destructive) 90%, black));
+}
+
+/* Sizes */
+.size-sm {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 0.875rem;
+  min-height: 36px;
+}
+
+.size-md {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 1rem;
+}
+
+.size-lg {
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: 1.125rem;
+  min-height: 52px;
+}
+
+/* Full width */
+.fullWidth {
+  width: 100%;
+}
+
+/* Loading state */
+.loading {
+  position: relative;
+}
+
+.spinner {
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  font-size: 1.25em;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+}

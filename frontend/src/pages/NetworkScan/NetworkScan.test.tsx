@@ -1,0 +1,239 @@
+/**
+ * Network Scan page unit tests.
+ */
+
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { BrowserRouter } from 'react-router-dom';
+import { NetworkScan } from './NetworkScan';
+import { AccessibilityProvider } from '@/context/AccessibilityContext';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { mockFetch, mockNetworkInterface, mockScanResponse } from '@/test/mocks';
+
+/**
+ * Wrapper component for testing with required providers.
+ */
+function TestWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <BrowserRouter>
+      <AccessibilityProvider>
+        <ThemeProvider>{children}</ThemeProvider>
+      </AccessibilityProvider>
+    </BrowserRouter>
+  );
+}
+
+describe('NetworkScan', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('renders the page title', () => {
+    // Mock network detection and scan history
+    mockFetch(mockNetworkInterface); // network detect
+    mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 }); // scan history
+
+    render(
+      <TestWrapper>
+        <NetworkScan />
+      </TestWrapper>
+    );
+
+    expect(screen.getByRole('heading', { name: /network scan/i })).toBeInTheDocument();
+  });
+
+  it('displays the scan form', () => {
+    mockFetch(mockNetworkInterface);
+    mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+
+    render(
+      <TestWrapper>
+        <NetworkScan />
+      </TestWrapper>
+    );
+
+    expect(screen.getByLabelText(/network target/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /start scan/i })).toBeInTheDocument();
+  });
+
+  it('auto-populates detected network', async () => {
+    mockFetch(mockNetworkInterface);
+    mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+
+    render(
+      <TestWrapper>
+        <NetworkScan />
+      </TestWrapper>
+    );
+
+    await waitFor(() => {
+      const input = screen.getByLabelText(/network target/i) as HTMLInputElement;
+      expect(input.value).toBe(mockNetworkInterface.network);
+    });
+  });
+
+  it('displays scan type options', () => {
+    mockFetch(mockNetworkInterface);
+    mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+
+    render(
+      <TestWrapper>
+        <NetworkScan />
+      </TestWrapper>
+    );
+
+    expect(screen.getByText('Quick Scan')).toBeInTheDocument();
+    expect(screen.getByText('Deep Scan')).toBeInTheDocument();
+    expect(screen.getByText('Vulnerability Scan')).toBeInTheDocument();
+  });
+
+  it('requires consent checkbox to start scan', () => {
+    mockFetch(mockNetworkInterface);
+    mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+
+    render(
+      <TestWrapper>
+        <NetworkScan />
+      </TestWrapper>
+    );
+
+    const submitButton = screen.getByRole('button', { name: /start scan/i });
+    expect(submitButton).toBeDisabled();
+  });
+
+  it('enables submit button when consent is given', async () => {
+    mockFetch(mockNetworkInterface);
+    mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+
+    const user = userEvent.setup();
+
+    render(
+      <TestWrapper>
+        <NetworkScan />
+      </TestWrapper>
+    );
+
+    // Wait for network detection
+    await waitFor(() => {
+      const input = screen.getByLabelText(/network target/i) as HTMLInputElement;
+      expect(input.value).toBeTruthy();
+    });
+
+    // Check consent checkbox
+    const checkbox = screen.getByRole('checkbox');
+    await user.click(checkbox);
+
+    const submitButton = screen.getByRole('button', { name: /start scan/i });
+    expect(submitButton).not.toBeDisabled();
+  });
+
+  it('displays consent warning text', () => {
+    mockFetch(mockNetworkInterface);
+    mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+
+    render(
+      <TestWrapper>
+        <NetworkScan />
+      </TestWrapper>
+    );
+
+    expect(
+      screen.getByText(/i confirm that i own or have explicit permission/i)
+    ).toBeInTheDocument();
+  });
+
+  it('displays scan history section', () => {
+    mockFetch(mockNetworkInterface);
+    mockFetch({
+      items: [mockScanResponse],
+      total: 1,
+      page: 1,
+      page_size: 10,
+      pages: 1,
+    });
+
+    render(
+      <TestWrapper>
+        <NetworkScan />
+      </TestWrapper>
+    );
+
+    expect(screen.getByText('Scan History')).toBeInTheDocument();
+  });
+
+  it('shows empty state for scan history when no scans', async () => {
+    mockFetch(mockNetworkInterface);
+    mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+
+    render(
+      <TestWrapper>
+        <NetworkScan />
+      </TestWrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/no scan history/i)).toBeInTheDocument();
+    });
+  });
+
+  it('displays scan history items', async () => {
+    mockFetch(mockNetworkInterface);
+    mockFetch({
+      items: [mockScanResponse],
+      total: 1,
+      page: 1,
+      page_size: 10,
+      pages: 1,
+    });
+
+    render(
+      <TestWrapper>
+        <NetworkScan />
+      </TestWrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(mockScanResponse.target_range)).toBeInTheDocument();
+    });
+  });
+
+  it('allows changing target input', async () => {
+    mockFetch(mockNetworkInterface);
+    mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+
+    const user = userEvent.setup();
+
+    render(
+      <TestWrapper>
+        <NetworkScan />
+      </TestWrapper>
+    );
+
+    const input = screen.getByLabelText(/network target/i);
+    await user.clear(input);
+    await user.type(input, '10.0.0.0/24');
+
+    expect(input).toHaveValue('10.0.0.0/24');
+  });
+
+  it('allows selecting different scan types', async () => {
+    mockFetch(mockNetworkInterface);
+    mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+
+    const user = userEvent.setup();
+
+    render(
+      <TestWrapper>
+        <NetworkScan />
+      </TestWrapper>
+    );
+
+    const deepScanOption = screen.getByText('Deep Scan');
+    await user.click(deepScanOption);
+
+    // The radio should be checked
+    const radio = screen.getByDisplayValue('deep');
+    expect(radio).toBeChecked();
+  });
+});

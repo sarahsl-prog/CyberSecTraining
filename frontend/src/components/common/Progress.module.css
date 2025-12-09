@@ -1,0 +1,71 @@
+/**
+ * Progress component styles.
+ */
+
+.container {
+  width: 100%;
+}
+
+/* Label container */
+.labelContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xs);
+}
+
+.label {
+  font-size: 0.875rem;
+  color: var(--color-foreground);
+}
+
+.percentage {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-muted-foreground);
+}
+
+/* Track (background) */
+.track {
+  width: 100%;
+  background: var(--color-muted);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+/* Sizes */
+.size-sm .track {
+  height: 4px;
+}
+
+.size-md .track {
+  height: 8px;
+}
+
+.size-lg .track {
+  height: 12px;
+}
+
+/* Indicator (fill) */
+.indicator {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width var(--transition-normal);
+}
+
+/* Variants */
+.variant-default {
+  background: var(--color-primary);
+}
+
+.variant-success {
+  background: var(--color-success, #16a34a);
+}
+
+.variant-warning {
+  background: var(--color-warning, #ca8a04);
+}
+
+.variant-destructive {
+  background: var(--color-destructive);
+}

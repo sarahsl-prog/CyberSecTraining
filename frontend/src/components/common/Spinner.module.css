@@ -1,0 +1,64 @@
+/**
+ * Spinner component styles.
+ */
+
+.spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner svg {
+  animation: spin 1s linear infinite;
+}
+
+/* Sizes */
+.size-sm svg {
+  width: 16px;
+  height: 16px;
+}
+
+.size-md svg {
+  width: 24px;
+  height: 24px;
+}
+
+.size-lg svg {
+  width: 40px;
+  height: 40px;
+}
+
+/* Track (background circle) */
+.track {
+  opacity: 0.2;
+}
+
+/* Indicator (animated part) */
+.indicator {
+  transform-origin: center;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .spinner svg {
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
