@@ -1,0 +1,29 @@
+/**
+ * NetworkControls component styles.
+ */
+
+.controls {
+  position: absolute;
+  bottom: var(--spacing-md);
+  right: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  background: var(--color-background);
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+  border: 1px solid var(--color-border);
+}
+
+.group {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+/* Make buttons smaller in the control panel */
+.controls button {
+  min-width: 36px;
+  min-height: 36px;
+  padding: var(--spacing-xs);
+}

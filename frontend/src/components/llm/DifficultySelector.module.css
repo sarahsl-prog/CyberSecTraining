@@ -1,0 +1,63 @@
+/**
+ * DifficultySelector component styles.
+ */
+
+.selector {
+  display: flex;
+  gap: 2px;
+  background: var(--color-muted);
+  border-radius: var(--radius-md);
+  padding: 2px;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: none;
+  background: transparent;
+  border-radius: calc(var(--radius-md) - 2px);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  font-size: 0.8125rem;
+  color: var(--color-muted-foreground);
+  min-height: 32px;
+}
+
+.option:hover:not(:disabled) {
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+
+.option:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 1px;
+}
+
+.option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.option.selected {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+}
+
+.icon {
+  font-size: 0.875rem;
+}
+
+.label {
+  display: none;
+}
+
+/* Show labels on larger screens */
+@media (min-width: 480px) {
+  .label {
+    display: inline;
+  }
+}

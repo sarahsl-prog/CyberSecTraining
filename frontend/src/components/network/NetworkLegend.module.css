@@ -1,0 +1,147 @@
+/**
+ * NetworkLegend component styles.
+ */
+
+.legend {
+  position: absolute;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  background: var(--color-background);
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+  border: 1px solid var(--color-border);
+  max-width: 200px;
+  font-size: 0.75rem;
+}
+
+.details {
+  overflow: hidden;
+}
+
+.summary {
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-foreground);
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid currentColor;
+  transition: transform var(--transition-fast);
+}
+
+.details[open] .summary::before {
+  transform: rotate(180deg);
+}
+
+.content {
+  padding: 0 var(--spacing-md) var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.itemLabel {
+  color: var(--color-foreground);
+  flex-shrink: 0;
+}
+
+.itemDescription {
+  color: var(--color-muted-foreground);
+  font-size: 0.65rem;
+}
+
+/* Color swatch */
+.colorSwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Shape swatches */
+.shapeSwatch {
+  width: 12px;
+  height: 12px;
+  background: var(--color-muted-foreground);
+  flex-shrink: 0;
+}
+
+.diamond {
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+
+.hexagon {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.rectangle {
+  border-radius: 2px;
+}
+
+.rounded-rectangle {
+  border-radius: 4px;
+}
+
+.circle {
+  border-radius: 50%;
+}
+
+/* Status swatches */
+.statusSwatch {
+  width: 12px;
+  height: 12px;
+  background: var(--color-primary, #2563eb);
+  border-radius: 50%;
+  border: 2px solid var(--color-primary, #2563eb);
+}
+
+.offline {
+  opacity: 0.5;
+  border-style: dashed;
+}

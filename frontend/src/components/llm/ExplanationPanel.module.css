@@ -1,0 +1,137 @@
+/**
+ * ExplanationPanel component styles.
+ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-muted);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.icon {
+  font-size: 1.25rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+/* Content */
+.content {
+  padding: var(--spacing-lg);
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Loading state */
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl);
+  color: var(--color-muted-foreground);
+  text-align: center;
+}
+
+/* Empty state */
+.emptyState {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-lg);
+}
+
+/* Explanation content */
+.explanation {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--color-foreground);
+}
+
+.explanation h4 {
+  margin: var(--spacing-md) 0 var(--spacing-sm);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.explanation h5 {
+  margin: var(--spacing-sm) 0 var(--spacing-xs);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.explanation p {
+  margin: 0 0 var(--spacing-md);
+}
+
+.explanation ul {
+  margin: var(--spacing-sm) 0;
+  padding-left: var(--spacing-lg);
+}
+
+.explanation li {
+  margin: var(--spacing-xs) 0;
+}
+
+.explanation strong {
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+/* Provider info */
+.providerInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.providerBadge {
+  font-size: 0.75rem;
+}
+
+.cachedIndicator {
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground);
+}
+
+.refreshButton {
+  margin-left: auto;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+}
