@@ -1,0 +1,33 @@
+{
+  "id": "open_vnc",
+  "title": "Exposed VNC Service",
+  "severity": "high",
+  "description": "VNC (Virtual Network Computing, port 5900+) remote desktop service is accessible. VNC often has weak authentication, and many implementations have had security vulnerabilities. Some VNC servers even allow unauthenticated access by default. Like RDP, exposed VNC is actively targeted by attackers.",
+  "detection_rules": [
+    {
+      "type": "port",
+      "port": 5900,
+      "condition": "exists"
+    },
+    {
+      "type": "port",
+      "port": 5901,
+      "condition": "exists"
+    },
+    {
+      "type": "service",
+      "service": "vnc",
+      "condition": "exists"
+    }
+  ],
+  "affected_device_types": ["server", "workstation", "iot"],
+  "affected_services": ["vnc"],
+  "remediation": "1. Disable VNC if not actively needed\n2. Use SSH tunneling for VNC connections instead of direct exposure\n3. Set a strong VNC password (though note VNC passwords are limited to 8 characters in some implementations)\n4. Use a VPN for remote access\n5. Restrict VNC access to specific IP addresses\n6. Consider more secure alternatives like SSH with X forwarding\n7. Keep VNC software updated\n8. Use firewall rules to block VNC ports from untrusted networks",
+  "references": [
+    "https://www.cisa.gov/news-events/alerts/2019/10/31/attackers-exploiting-multiple-vulnerabilities-pulse-secure-vpn",
+    "https://nvd.nist.gov/vuln/detail/CVE-2006-2369"
+  ],
+  "cve_ids": ["CVE-2006-2369", "CVE-2019-15124"],
+  "mitre_attack": ["T1021.005", "T1110"],
+  "tags": ["remote-access", "desktop", "authentication"]
+}

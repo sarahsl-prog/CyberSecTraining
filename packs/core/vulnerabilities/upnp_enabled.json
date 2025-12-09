@@ -1,0 +1,33 @@
+{
+  "id": "upnp_enabled",
+  "title": "UPnP Enabled",
+  "severity": "medium",
+  "description": "Universal Plug and Play (UPnP) is enabled on this device. UPnP allows devices to automatically configure port forwarding rules on your router without authentication. Malware can exploit UPnP to expose internal services to the internet, bypass firewall rules, and create backdoors for attackers.",
+  "detection_rules": [
+    {
+      "type": "port",
+      "port": 1900,
+      "condition": "exists"
+    },
+    {
+      "type": "port",
+      "port": 5000,
+      "condition": "exists"
+    },
+    {
+      "type": "service",
+      "service": "upnp",
+      "condition": "exists"
+    }
+  ],
+  "affected_device_types": ["router", "access_point", "nas", "smart_tv"],
+  "affected_services": ["upnp", "ssdp"],
+  "remediation": "1. Access your router's administration interface\n2. Navigate to UPnP settings (often under Advanced or Firewall)\n3. Disable UPnP completely\n4. Manually configure port forwarding rules for legitimate services\n5. Review existing port forwarding rules for unauthorized entries\n6. Consider devices that use more secure alternatives like NAT-PMP with authentication",
+  "references": [
+    "https://www.cisa.gov/news-events/alerts/2019/04/08/security-update-universal-plug-and-play-upnp",
+    "https://www.kb.cert.org/vuls/id/347812"
+  ],
+  "cve_ids": [],
+  "mitre_attack": ["T1090", "T1571"],
+  "tags": ["network-service", "router", "firewall-bypass"]
+}

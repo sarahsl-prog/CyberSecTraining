@@ -1,0 +1,14 @@
+{
+  "id": "core",
+  "name": "Core Vulnerability Definitions",
+  "version": "1.0.0",
+  "description": "Core pack containing the top 20 vulnerability types commonly found in home and small office networks. This pack is required by all other packs.",
+  "author": "CyberSec Teaching Tool",
+  "license": "MIT",
+  "requires_core": ">=0.1.0",
+  "vulnerabilities_count": 20,
+  "scenarios_count": 0,
+  "tags": ["core", "essential", "home-network", "small-office"],
+  "created_at": "2024-12-08",
+  "updated_at": "2024-12-08"
+}

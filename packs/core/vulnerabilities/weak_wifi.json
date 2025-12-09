@@ -1,0 +1,23 @@
+{
+  "id": "weak_wifi",
+  "title": "Weak WiFi Security (WEP/WPA)",
+  "severity": "high",
+  "description": "The wireless network is using outdated security protocols (WEP or WPA). WEP can be cracked in minutes with freely available tools. WPA (without WPA2) is also vulnerable to dictionary attacks. Modern networks should use WPA2 or WPA3 with strong passwords.",
+  "detection_rules": [
+    {
+      "type": "service",
+      "service": "wireless",
+      "condition": "exists"
+    }
+  ],
+  "affected_device_types": ["router", "access_point"],
+  "affected_services": ["wireless"],
+  "remediation": "1. Access your router's wireless settings\n2. Change security mode from WEP/WPA to WPA2-Personal (AES) or WPA3 if supported\n3. Set a strong wireless password (at least 12 characters)\n4. Disable WPS (WiFi Protected Setup) as it has known vulnerabilities\n5. Consider hiding your SSID for additional obscurity (though this is not strong security)\n6. Enable MAC address filtering as an additional layer\n7. Create a separate guest network for visitors\n8. Upgrade router firmware or the router itself if WPA2/WPA3 is not supported",
+  "references": [
+    "https://www.cisa.gov/news-events/alerts/2017/10/16/dhs-discourages-wpa-wpa2-wifi-security",
+    "https://www.krackattacks.com/"
+  ],
+  "cve_ids": ["CVE-2017-13077"],
+  "mitre_attack": ["T1557.002", "T1040"],
+  "tags": ["wireless", "encryption", "router"]
+}

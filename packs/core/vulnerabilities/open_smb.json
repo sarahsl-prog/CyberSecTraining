@@ -1,0 +1,38 @@
+{
+  "id": "open_smb",
+  "title": "Open SMB/CIFS Shares",
+  "severity": "high",
+  "description": "The device has SMB (Server Message Block) file sharing enabled and accessible. SMB has been the target of numerous critical vulnerabilities including EternalBlue (WannaCry ransomware). Open SMB shares can expose sensitive files and provide attackers with lateral movement opportunities within your network.",
+  "detection_rules": [
+    {
+      "type": "port",
+      "port": 445,
+      "condition": "exists"
+    },
+    {
+      "type": "port",
+      "port": 139,
+      "condition": "exists"
+    },
+    {
+      "type": "service",
+      "service": "smb",
+      "condition": "exists"
+    },
+    {
+      "type": "service",
+      "service": "netbios-ssn",
+      "condition": "exists"
+    }
+  ],
+  "affected_device_types": ["server", "workstation", "nas"],
+  "affected_services": ["smb", "netbios"],
+  "remediation": "1. Disable SMBv1 - it's deprecated and vulnerable\n2. Ensure Windows systems are patched with latest security updates\n3. Disable file sharing if not needed\n4. If sharing is needed, require authentication (no guest access)\n5. Use strong passwords for share access\n6. Enable SMB signing to prevent man-in-the-middle attacks\n7. Restrict SMB access to specific IP ranges\n8. Consider using SMB over VPN for remote access",
+  "references": [
+    "https://docs.microsoft.com/en-us/security-updates/securitybulletins/2017/ms17-010",
+    "https://www.cisa.gov/news-events/alerts/2017/05/12/indicators-associated-wannacry-ransomware"
+  ],
+  "cve_ids": ["CVE-2017-0144", "CVE-2017-0145", "CVE-2020-0796"],
+  "mitre_attack": ["T1021.002", "T1135"],
+  "tags": ["file-sharing", "lateral-movement", "ransomware"]
+}

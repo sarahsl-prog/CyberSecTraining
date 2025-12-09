@@ -1,4 +1,9 @@
-"""FastAPI application entry point."""
+"""
+FastAPI application entry point.
+
+This module creates and configures the main FastAPI application instance,
+including middleware, routers, and lifecycle management.
+"""
 
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
@@ -8,19 +13,35 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.config import settings
+from app.core.logging import setup_logging, get_logger
 from app.db.init_db import init_db
+
+# Initialize logging first
+setup_logging()
+logger = get_logger("api")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Application lifespan handler for startup/shutdown events."""
+    """
+    Application lifespan handler for startup/shutdown events.
+
+    This context manager handles:
+    - Startup: Initialize database, logging, and other services
+    - Shutdown: Clean up resources
+    """
     # Startup
-    print(f"Starting {settings.app_name}...")
+    logger.info(f"Starting {settings.app_name} v{settings.app_version}...")
+    logger.info(f"Debug mode: {settings.debug}")
+    logger.info(f"Log level: {settings.log_level}")
+
     init_db()
-    print("Database initialized.")
+    logger.info("Database initialized successfully")
+
     yield
+
     # Shutdown
-    print("Shutting down...")
+    logger.info("Shutting down application...")
 
 
 def create_app() -> FastAPI:

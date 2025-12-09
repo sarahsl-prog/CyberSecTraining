@@ -1,0 +1,33 @@
+{
+  "id": "open_rdp",
+  "title": "Exposed RDP (Remote Desktop)",
+  "severity": "critical",
+  "description": "Remote Desktop Protocol (RDP, port 3389) is accessible. RDP is a primary target for ransomware attacks and brute-force credential guessing. If exposed to the internet, it's only a matter of time before attackers attempt to compromise the system. Multiple critical RDP vulnerabilities (like BlueKeep) have been discovered.",
+  "detection_rules": [
+    {
+      "type": "port",
+      "port": 3389,
+      "condition": "exists"
+    },
+    {
+      "type": "service",
+      "service": "ms-wbt-server",
+      "condition": "exists"
+    },
+    {
+      "type": "service",
+      "service": "rdp",
+      "condition": "exists"
+    }
+  ],
+  "affected_device_types": ["server", "workstation"],
+  "affected_services": ["rdp", "ms-wbt-server"],
+  "remediation": "1. Disable RDP if not needed\n2. Never expose RDP directly to the internet\n3. Use a VPN for remote access instead\n4. Enable Network Level Authentication (NLA)\n5. Use strong, unique passwords and consider multi-factor authentication\n6. Limit RDP access to specific IP addresses using firewall rules\n7. Keep Windows systems updated to patch RDP vulnerabilities\n8. Consider using Remote Desktop Gateway for additional security\n9. Enable account lockout policies to prevent brute-force attacks",
+  "references": [
+    "https://www.cisa.gov/news-events/cybersecurity-advisories/aa19-168a",
+    "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2019-0708"
+  ],
+  "cve_ids": ["CVE-2019-0708", "CVE-2019-1181", "CVE-2019-1182"],
+  "mitre_attack": ["T1021.001", "T1110"],
+  "tags": ["remote-access", "windows", "ransomware", "critical"]
+}
