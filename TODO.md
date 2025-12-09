@@ -1,7 +1,7 @@
 # CyberSec Training Tool - Implementation Plan
 
 **Last Updated:** December 9, 2024
-**Current Phase:** Phase 2 - Frontend Foundation ✅ COMPLETE
+**Current Phase:** Phase 4 - LLM Integration ✅ COMPLETE
 **Branch:** `implementph2`
 
 ---
@@ -17,11 +17,11 @@
 | 2 | Dashboard Page | ✅ Complete | 100% |
 | 2 | Network Scan Page | ✅ Complete | 100% |
 | 2 | Settings Page | ✅ Complete | 100% |
-| 3 | Cytoscape.js Integration | ⏳ Pending | 0% |
-| 3 | Device Detail View | ⏳ Pending | 0% |
-| 3 | Vulnerability Detail View | ⏳ Pending | 0% |
-| 4 | LLM Service with Fallback | ⏳ Pending | 0% |
-| 4 | LLM Explanation UI | ⏳ Pending | 0% |
+| 3 | Cytoscape.js Integration | ✅ Complete | 100% |
+| 3 | Device Detail View | ✅ Complete | 100% |
+| 3 | Vulnerability Detail View | ✅ Complete | 100% |
+| 4 | LLM Service with Fallback | ✅ Complete | 100% |
+| 4 | LLM Explanation UI | ✅ Complete | 100% |
 | 5 | Scenario Loader | ⏳ Pending | 0% |
 | 5 | Scenario Browser Page | ⏳ Pending | 0% |
 
@@ -321,46 +321,147 @@ frontend/src/components/common/
 
 ---
 
-## Phase 3: Network Visualization
+## Phase 3: Network Visualization ✅ COMPLETE
 
-### 3.1 Cytoscape.js Integration
-**Priority:** High
-**Dependencies:** Phase 2 complete
+### 3.1 Cytoscape.js Integration ✅
+**Status:** Complete
 
-#### Tasks
-- [ ] Set up Cytoscape.js with React
-- [ ] Create network graph component
-- [ ] Implement device node rendering
-- [ ] Add severity-based coloring
-- [ ] Implement zoom/pan controls
-- [ ] Add accessibility features (keyboard navigation)
+#### Completed Tasks
+- [x] Set up Cytoscape.js with React
+- [x] Create network graph component with concentric layout
+- [x] Implement device node rendering with type-based icons
+- [x] Add severity-based coloring (critical, high, medium, safe)
+- [x] Implement zoom/pan controls toolbar
+- [x] Add accessibility features (keyboard navigation: Tab, +/-, 0, Enter, Escape)
+- [x] Create network legend component
+- [x] Write unit tests for all components
 
-### 3.2 Device Detail View
-**Priority:** High
-**Dependencies:** 3.1
+#### Files Created
+```
+frontend/src/components/network/
+├── index.ts
+├── NetworkGraph.tsx, NetworkGraph.module.css
+├── NetworkControls.tsx, NetworkControls.module.css
+├── NetworkLegend.tsx, NetworkLegend.module.css
+├── DeviceNode.tsx, DeviceNode.module.css
+├── DeviceNode.test.tsx
+├── NetworkControls.test.tsx
+└── NetworkLegend.test.tsx
+frontend/src/components/common/
+├── Modal.tsx, Modal.module.css
+└── Modal.test.tsx
+```
 
-### 3.3 Vulnerability Detail View
-**Priority:** High
-**Dependencies:** 3.2
+### 3.2 Device Detail View ✅
+**Status:** Complete
+
+#### Completed Tasks
+- [x] Create device detail modal component
+- [x] Display device properties (IP, MAC, vendor, OS)
+- [x] Show open ports list
+- [x] Display vulnerability list with severity badges
+- [x] Add click-through to vulnerability details
+- [x] Write unit tests
+
+#### Files Created
+```
+frontend/src/components/network/
+├── DeviceDetail.tsx, DeviceDetail.module.css
+└── DeviceDetail.test.tsx
+```
+
+### 3.3 Vulnerability Detail View ✅
+**Status:** Complete
+
+#### Completed Tasks
+- [x] Create vulnerability detail modal component
+- [x] Display severity with educational explanation
+- [x] Show description and affected service/port
+- [x] Display remediation steps
+- [x] Add timeline (discovered, fixed timestamps)
+- [x] Add "Mark as Fixed" and "Learn More" actions
+- [x] Write unit tests
+
+#### Files Created
+```
+frontend/src/components/network/
+├── VulnerabilityDetail.tsx, VulnerabilityDetail.module.css
+└── VulnerabilityDetail.test.tsx
+```
 
 ---
 
-## Phase 4: LLM Integration
+## Phase 4: LLM Integration ✅ COMPLETE
 
-### 4.1 LLM Service with Fallback Chain
-**Priority:** Medium
-**Dependencies:** Phase 1 complete ✅
+### 4.1 LLM Service with Fallback Chain ✅
+**Status:** Complete
 
-#### Tasks
-- [ ] Implement Ollama detection and integration
-- [ ] Add hosted API integration (placeholder)
-- [ ] Create static knowledge base fallback
-- [ ] Implement fallback chain logic
-- [ ] Add response caching
+#### Completed Tasks
+- [x] Implement Ollama provider with model detection
+- [x] Add hosted API provider (OpenAI-compatible)
+- [x] Create static knowledge base fallback with 20+ pre-written explanations
+- [x] Implement fallback chain logic (Ollama -> Hosted -> Static)
+- [x] Add response caching with TTL and LRU eviction
+- [x] Create LLM API routes
+- [x] Write unit tests for all providers and cache
 
-### 4.2 LLM Explanation UI
-**Priority:** Medium
-**Dependencies:** 4.1, Phase 3
+#### Files Created
+```
+backend/app/services/llm/
+├── __init__.py
+├── models.py              # ExplanationRequest, ExplanationResponse, etc.
+├── service.py             # Main LLM service with fallback chain
+├── cache.py               # TTL cache with LRU eviction
+└── providers/
+    ├── __init__.py
+    ├── base.py            # Abstract provider interface
+    ├── ollama.py          # Ollama integration
+    ├── hosted.py          # Hosted API integration
+    └── static.py          # Static knowledge base
+backend/app/api/routes/
+└── llm.py                 # LLM API endpoints
+tests/services/llm/
+├── __init__.py
+├── test_cache.py
+├── test_providers.py
+└── test_service.py
+```
+
+#### API Endpoints Implemented
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/llm/explain` | Get explanation for any topic |
+| GET | `/api/v1/llm/explain/vulnerability/{type}` | Explain vulnerability |
+| GET | `/api/v1/llm/explain/remediation/{type}` | Get remediation steps |
+| GET | `/api/v1/llm/explain/concept/{concept}` | Explain security concept |
+| GET | `/api/v1/llm/health` | Check provider health |
+| GET | `/api/v1/llm/cache/stats` | Get cache statistics |
+| POST | `/api/v1/llm/cache/clear` | Clear cache |
+
+### 4.2 LLM Explanation UI ✅
+**Status:** Complete
+
+#### Completed Tasks
+- [x] Create TypeScript types for LLM responses
+- [x] Create LLM service client
+- [x] Build ExplanationPanel component with markdown rendering
+- [x] Create DifficultySelector component (beginner/intermediate/advanced)
+- [x] Create RelatedTopics component for further learning
+- [x] Add loading, error, and cached states
+- [x] Display provider indicator
+
+#### Files Created
+```
+frontend/src/types/
+└── llm.ts                 # LLM types
+frontend/src/services/
+└── llm-service.ts         # LLM API client
+frontend/src/components/llm/
+├── index.ts
+├── ExplanationPanel.tsx, ExplanationPanel.module.css
+├── DifficultySelector.tsx, DifficultySelector.module.css
+└── RelatedTopics.tsx, RelatedTopics.module.css
+```
 
 ---
 
@@ -406,6 +507,37 @@ frontend/src/components/common/
 ---
 
 ## Changelog
+
+### December 9, 2024 - Phase 3 & 4 Complete
+- ✅ Created network visualization components
+  - NetworkGraph with Cytoscape.js integration (concentric layout)
+  - DeviceNode component for standalone device display
+  - NetworkControls toolbar (zoom in/out, fit, reset)
+  - NetworkLegend component with severity colors and device types
+  - Modal component for dialogs
+- ✅ Created device and vulnerability detail views
+  - DeviceDetail modal with properties, ports, and vulnerabilities
+  - VulnerabilityDetail modal with severity explanation and remediation
+- ✅ Implemented LLM service backend
+  - Ollama provider for local AI (llama3.2)
+  - Hosted API provider (OpenAI-compatible)
+  - Static knowledge base with 20+ pre-written explanations
+  - Fallback chain: Ollama -> Hosted -> Static
+  - Response caching with TTL and LRU eviction
+- ✅ Created LLM API routes
+  - POST /llm/explain - Get explanation for any topic
+  - GET /llm/explain/vulnerability/{type} - Shortcut for vulnerabilities
+  - GET /llm/explain/remediation/{type} - Shortcut for remediation
+  - GET /llm/explain/concept/{concept} - Shortcut for concepts
+  - GET /llm/health - Provider health status
+  - Cache management endpoints
+- ✅ Created LLM Explanation UI components
+  - ExplanationPanel with markdown rendering
+  - DifficultySelector (beginner/intermediate/advanced)
+  - RelatedTopics for further learning
+  - Provider indicator and cached response display
+- ✅ Wrote comprehensive unit tests for all components
+- Updated API router to include LLM routes
 
 ### December 9, 2024 - Phase 2 Complete
 - ✅ Created TypeScript types for API responses

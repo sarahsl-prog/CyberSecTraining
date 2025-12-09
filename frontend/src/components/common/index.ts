@@ -12,3 +12,4 @@ export { Badge } from './Badge';
 export { Progress } from './Progress';
 export { EmptyState } from './EmptyState';
 export { ErrorMessage } from './ErrorMessage';
+export { Modal } from './Modal';
