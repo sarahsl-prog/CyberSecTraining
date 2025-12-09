@@ -1,0 +1,75 @@
+/**
+ * ErrorMessage component styles.
+ */
+
+.container {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  background: var(--color-destructive-bg, #fef2f2);
+  border: 1px solid var(--color-destructive-border, #fecaca);
+}
+
+/* Variants */
+.variant-inline {
+  font-size: 0.875rem;
+}
+
+.variant-banner {
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+}
+
+.variant-page {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing-xl);
+  min-height: 200px;
+  justify-content: center;
+}
+
+/* Icon */
+.iconWrapper {
+  flex-shrink: 0;
+  color: var(--color-destructive);
+}
+
+.variant-page .iconWrapper {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Content */
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--color-destructive);
+}
+
+.message {
+  margin: 0.25rem 0 0;
+  color: var(--color-destructive-foreground, #991b1b);
+}
+
+.variant-page .message {
+  max-width: 50ch;
+}
+
+/* Action */
+.action {
+  flex-shrink: 0;
+}
+
+.variant-page .action {
+  margin-top: var(--spacing-md);
+}

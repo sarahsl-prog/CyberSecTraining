@@ -1,0 +1,84 @@
+/**
+ * Badge component styles.
+ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+/* Sizes */
+.size-sm {
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.size-md {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Variants */
+.variant-default {
+  background: var(--color-muted);
+  color: var(--color-muted-foreground);
+}
+
+.variant-primary {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+
+.variant-secondary {
+  background: var(--color-secondary);
+  color: var(--color-secondary-foreground);
+}
+
+.variant-success {
+  background: var(--color-success, #16a34a);
+  color: white;
+}
+
+.variant-warning {
+  background: var(--color-warning, #ca8a04);
+  color: white;
+}
+
+.variant-destructive {
+  background: var(--color-destructive);
+  color: var(--color-destructive-foreground);
+}
+
+.variant-info {
+  background: var(--color-info, #2563eb);
+  color: white;
+}
+
+/* Severity variants - use CSS variables from theme */
+.severity-critical {
+  background: var(--color-severity-critical);
+  color: white;
+}
+
+.severity-high {
+  background: var(--color-severity-high);
+  color: white;
+}
+
+.severity-medium {
+  background: var(--color-severity-medium);
+  color: white;
+}
+
+.severity-low {
+  background: var(--color-severity-low);
+  color: white;
+}
+
+.severity-info {
+  background: var(--color-info, #2563eb);
+  color: white;
+}
