@@ -1,8 +1,8 @@
 # CyberSec Training Tool - Implementation Plan
 
-**Last Updated:** December 9, 2024
-**Current Phase:** Phase 4 - LLM Integration ✅ COMPLETE
-**Branch:** `implementph2`
+**Last Updated:** December 10, 2024
+**Current Phase:** Phase 5 - Scenario System ✅ COMPLETE
+**Branch:** `implementphase5`
 
 ---
 
@@ -22,8 +22,8 @@
 | 3 | Vulnerability Detail View | ✅ Complete | 100% |
 | 4 | LLM Service with Fallback | ✅ Complete | 100% |
 | 4 | LLM Explanation UI | ✅ Complete | 100% |
-| 5 | Scenario Loader | ⏳ Pending | 0% |
-| 5 | Scenario Browser Page | ⏳ Pending | 0% |
+| 5 | Scenario Loader | ✅ Complete | 100% |
+| 5 | Scenario Browser Page | ✅ Complete | 100% |
 
 **Legend:** ✅ Complete | 🔄 In Progress | ⏳ Pending | ❌ Blocked
 
@@ -465,15 +465,79 @@ frontend/src/components/llm/
 
 ---
 
-## Phase 5: Scenario System
+## Phase 5: Scenario System ✅ COMPLETE
 
-### 5.1 Scenario Loader
-**Priority:** Low
-**Dependencies:** Phase 3 complete
+### 5.1 Scenario Loader ✅
+**Status:** Complete
 
-### 5.2 Scenario Browser Page
-**Priority:** Low
-**Dependencies:** 5.1
+#### Completed Tasks
+- [x] Design scenario JSON schema
+- [x] Create Pydantic models (Scenario, ScenarioDevice, ScenarioVulnerability, ScenarioProgress)
+- [x] Implement ScenarioLoader service with caching
+- [x] Support filtering by pack, difficulty, and tags
+- [x] Create scenario API routes
+- [x] Write unit tests
+
+#### Files Created
+```
+backend/app/services/scenarios/
+├── __init__.py
+├── models.py              # Scenario, ScenarioDevice, ScenarioVulnerability, etc.
+└── loader.py              # ScenarioLoader service with caching
+backend/app/api/routes/
+└── scenarios.py           # Scenario API endpoints
+backend/tests/services/scenarios/
+├── __init__.py
+└── test_loader.py         # Comprehensive loader tests
+packs/core/scenarios/
+├── home_network_101.json  # Beginner scenario
+├── router_hardening.json  # Intermediate scenario
+└── small_office_audit.json # Advanced scenario
+```
+
+#### API Endpoints Implemented
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/scenarios` | List scenarios with filtering |
+| GET | `/api/v1/scenarios/packs` | List content packs |
+| GET | `/api/v1/scenarios/tags` | Get all unique tags |
+| GET | `/api/v1/scenarios/difficulties` | Get difficulty levels |
+| GET | `/api/v1/scenarios/{id}` | Get scenario details |
+| GET | `/api/v1/scenarios/{id}/start` | Start a scenario session |
+| POST | `/api/v1/scenarios/reload` | Reload scenarios from disk |
+
+### 5.2 Scenario Browser Page ✅
+**Status:** Complete
+
+#### Completed Tasks
+- [x] Create Scenarios page with grid layout
+- [x] Implement ScenarioCard component with difficulty badges
+- [x] Create ScenarioFilters component (pack, difficulty, tag filters)
+- [x] Add scenario service client
+- [x] Create React hooks (useScenarioBrowser, useScenarioStart, etc.)
+- [x] Add TypeScript types for scenarios
+- [x] Write unit tests for components
+- [x] Add routes for scenario details and player (placeholders)
+
+#### Files Created
+```
+frontend/src/types/
+└── scenario.ts            # Scenario types, DifficultyLevel, DIFFICULTY_CONFIG
+frontend/src/services/
+└── scenario-service.ts    # Scenario API client
+frontend/src/hooks/
+└── useScenarios.ts        # useScenarioList, useScenarioBrowser, useScenarioStart
+frontend/src/components/scenarios/
+├── index.ts
+├── ScenarioCard.tsx, ScenarioCard.module.css
+├── ScenarioCard.test.tsx
+├── ScenarioFilters.tsx, ScenarioFilters.module.css
+└── ScenarioFilters.test.tsx
+frontend/src/pages/Scenarios/
+├── index.ts
+├── Scenarios.tsx, Scenarios.module.css
+└── Scenarios.test.tsx
+```
 
 ---
 
@@ -507,6 +571,37 @@ frontend/src/components/llm/
 ---
 
 ## Changelog
+
+### December 10, 2024 - Phase 5 Complete
+- ✅ Implemented scenario loader service
+  - ScenarioLoader with caching and lazy initialization
+  - Support for JSON scenario files in content packs
+  - Filtering by pack, difficulty, and tags
+- ✅ Created scenario Pydantic models
+  - Scenario, ScenarioDevice, ScenarioVulnerability
+  - ScenarioMetadata, ScenarioProgress, ScenarioSummary
+  - DifficultyLevel enum (beginner, intermediate, advanced, expert)
+- ✅ Created scenario API routes
+  - List, get, filter, start scenarios
+  - List packs, tags, difficulties
+  - Reload scenarios from disk
+- ✅ Created Scenarios browser page
+  - Grid layout with ScenarioCard components
+  - Filtering controls (pack, difficulty, tag)
+  - Start scenario navigation
+- ✅ Created scenario components
+  - ScenarioCard with difficulty badges and stats
+  - ScenarioFilters with dropdowns
+- ✅ Created scenario service client and hooks
+  - useScenarioList, useScenarioBrowser, useScenarioStart
+  - useContentPacks, useScenarioTags
+- ✅ Created 3 sample scenarios in core pack
+  - Home Network Basics (beginner)
+  - Router Hardening (intermediate)
+  - Small Office Audit (advanced)
+- ✅ Wrote comprehensive tests for loader and components
+- Updated App.tsx with scenario routes
+- Updated router.py to include scenario routes
 
 ### December 9, 2024 - Phase 3 & 4 Complete
 - ✅ Created network visualization components
