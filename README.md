@@ -74,17 +74,25 @@ npm run tauri dev
 
 ### Testing
 
-Backend tests:
+Run all backend tests:
 ```bash
 cd backend
-pytest
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pytest                      # Run all tests
+pytest -v                   # Verbose output
+pytest --cov=app           # With coverage report
+pytest tests/services/     # Run specific test directory
 ```
 
-Frontend tests:
+Run all frontend tests:
 ```bash
 cd frontend
-npm test
+npm test                   # Run all tests in watch mode
+npm run test:ui           # Run with Vitest UI
+npm run test:coverage     # Generate coverage report
 ```
+
+For comprehensive testing documentation, see [TESTING.md](./TESTING.md)
 
 ## Project Structure
 
