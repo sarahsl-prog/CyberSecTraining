@@ -224,3 +224,92 @@ export function mockNetworkError(): void {
 
 // Need to import vi
 import { vi } from 'vitest';
+import type { ScenarioSummary, ContentPack, DifficultyLevel } from '@/types';
+
+/**
+ * Mock scenario summary.
+ */
+export const mockScenarioSummary: ScenarioSummary = {
+  id: 'home-network-101',
+  pack_id: 'core',
+  name: 'Home Network Basics',
+  description: 'Learn to identify common vulnerabilities in a home network setup.',
+  difficulty: 'beginner' as DifficultyLevel,
+  tags: ['home', 'beginner', 'router'],
+  device_count: 3,
+  vulnerability_count: 4,
+  estimated_time: 30,
+  is_completed: false,
+  best_score: undefined,
+};
+
+/**
+ * Mock scenario summaries list.
+ */
+export const mockScenarioSummaries: ScenarioSummary[] = [
+  mockScenarioSummary,
+  {
+    ...mockScenarioSummary,
+    id: 'router-hardening',
+    name: 'Router Hardening',
+    description: 'Practice securing a router configuration.',
+    difficulty: 'intermediate' as DifficultyLevel,
+    tags: ['router', 'intermediate', 'hardening'],
+    device_count: 1,
+    vulnerability_count: 6,
+    estimated_time: 45,
+    is_completed: true,
+    best_score: 85,
+  },
+  {
+    ...mockScenarioSummary,
+    id: 'small-office-audit',
+    name: 'Small Office Audit',
+    description: 'Perform a comprehensive security audit of a small office network.',
+    difficulty: 'advanced' as DifficultyLevel,
+    tags: ['office', 'advanced', 'audit'],
+    device_count: 5,
+    vulnerability_count: 10,
+    estimated_time: 60,
+    is_completed: false,
+    best_score: undefined,
+  },
+];
+
+/**
+ * Mock content pack.
+ */
+export const mockContentPack: ContentPack = {
+  id: 'core',
+  name: 'Core Pack',
+  description: 'Essential cybersecurity scenarios for beginners.',
+  version: '1.0.0',
+  scenario_count: 3,
+};
+
+/**
+ * Mock content packs list.
+ */
+export const mockContentPacks: ContentPack[] = [
+  mockContentPack,
+  {
+    id: 'home-basics',
+    name: 'Home Network Basics',
+    description: 'Scenarios for home network security.',
+    version: '1.0.0',
+    scenario_count: 5,
+  },
+];
+
+/**
+ * Mock scenario tags.
+ */
+export const mockScenarioTags: string[] = [
+  'audit',
+  'beginner',
+  'hardening',
+  'home',
+  'intermediate',
+  'office',
+  'router',
+];

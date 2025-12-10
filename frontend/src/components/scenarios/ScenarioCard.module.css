@@ -1,0 +1,163 @@
+/**
+ * ScenarioCard component styles.
+ */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+  min-height: 200px;
+}
+
+.card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+.card:active {
+  transform: scale(0.99);
+}
+
+.card.completed {
+  border-color: var(--color-severity-low);
+  background: color-mix(in srgb, var(--color-severity-low) 5%, var(--color-card));
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  min-width: 0;
+}
+
+.icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Description */
+.description {
+  margin: 0 0 var(--spacing-md);
+  font-size: 0.875rem;
+  color: var(--color-muted-foreground);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+/* Stats */
+.stats {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.8125rem;
+  color: var(--color-muted-foreground);
+}
+
+.statIcon {
+  font-size: 0.875rem;
+}
+
+.statValue {
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.statLabel {
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .statLabel {
+    display: inline;
+  }
+}
+
+/* Tags */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+}
+
+.tag {
+  padding: 2px var(--spacing-xs);
+  background: var(--color-muted);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground);
+}
+
+.tagMore {
+  padding: 2px var(--spacing-xs);
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground);
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border);
+}
+
+.completedBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-severity-low);
+}
+
+.score {
+  margin-left: var(--spacing-sm);
+  color: var(--color-muted-foreground);
+  font-weight: 400;
+}
+
+.startButton {
+  min-width: 120px;
+}

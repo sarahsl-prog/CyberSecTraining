@@ -6,4 +6,5 @@
 
 export { Dashboard } from './Dashboard';
 export { NetworkScan } from './NetworkScan';
+export { Scenarios } from './Scenarios';
 export { Settings } from './Settings';
