@@ -19,6 +19,8 @@ import { DifficultySelector } from './DifficultySelector';
 import { RelatedTopics } from './RelatedTopics';
 import styles from './ExplanationPanel.module.css';
 
+const log = logger.create('ExplanationPanel');
+
 /**
  * Props for ExplanationPanel component.
  */
@@ -77,7 +79,7 @@ export function ExplanationPanel({
     setLoading(true);
     setError(null);
 
-    logger.debug('Fetching explanation', { topic, explanationType, difficulty });
+    log.debug('Fetching explanation', { topic, explanationType, difficulty });
 
     try {
       const response = await llmService.getExplanation(
@@ -91,11 +93,11 @@ export function ExplanationPanel({
       );
 
       setExplanation(response);
-      logger.info('Explanation loaded', { provider: response.provider, cached: response.cached });
+      log.info('Explanation loaded', { provider: response.provider, cached: response.cached });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load explanation';
       setError(message);
-      logger.error('Failed to fetch explanation', { error: message });
+      log.error('Failed to fetch explanation', { error: message });
     } finally {
       setLoading(false);
     }

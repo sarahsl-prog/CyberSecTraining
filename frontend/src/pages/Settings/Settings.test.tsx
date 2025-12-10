@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { Settings } from './Settings';
@@ -73,12 +73,16 @@ describe('Settings', () => {
       </TestWrapper>
     );
 
-    const darkOption = screen.getByText('Dark');
-    await user.click(darkOption);
+    // Click on the label text to select dark mode
+    const darkLabel = screen.getByText('Dark');
+    await user.click(darkLabel);
 
-    // The radio should be checked
+    // The radio input should be checked after state update
     const radio = screen.getByDisplayValue('dark');
-    expect(radio).toBeChecked();
+    // Use waitFor since state updates may be async
+    await waitFor(() => {
+      expect(radio).toBeChecked();
+    });
   });
 
   it('displays font size options', () => {
@@ -103,7 +107,8 @@ describe('Settings', () => {
       </TestWrapper>
     );
 
-    const largeButton = screen.getByRole('button', { name: /large/i });
+    // Use exact match to avoid matching "Extra Large"
+    const largeButton = screen.getByRole('button', { name: /^Large$/i });
     await user.click(largeButton);
 
     expect(largeButton).toHaveAttribute('aria-pressed', 'true');
@@ -209,14 +214,19 @@ describe('Settings', () => {
       </TestWrapper>
     );
 
-    // Find the reduce motion toggle
+    // Find the reduce motion toggle (first toggle in accessibility section)
     const toggles = screen.getAllByRole('switch');
     const reduceMotionToggle = toggles[0]; // First toggle is reduce motion
 
+    // Get initial state
     const initialState = reduceMotionToggle.getAttribute('aria-checked');
+
     await user.click(reduceMotionToggle);
 
-    expect(reduceMotionToggle.getAttribute('aria-checked')).not.toBe(initialState);
+    // After click, state should be toggled
+    await waitFor(() => {
+      expect(reduceMotionToggle.getAttribute('aria-checked')).not.toBe(initialState);
+    });
   });
 
   it('has accessible labels for all controls', () => {
@@ -228,8 +238,11 @@ describe('Settings', () => {
 
     // All switches should have proper aria attributes
     const switches = screen.getAllByRole('switch');
+    expect(switches.length).toBeGreaterThan(0);
     switches.forEach((sw) => {
-      expect(sw).toHaveAttribute('aria-checked');
+      // Each switch should have aria-checked set to either 'true' or 'false'
+      const ariaChecked = sw.getAttribute('aria-checked');
+      expect(ariaChecked === 'true' || ariaChecked === 'false').toBe(true);
     });
 
     // Slider should have proper attributes

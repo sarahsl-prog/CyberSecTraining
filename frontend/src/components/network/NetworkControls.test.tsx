@@ -33,13 +33,13 @@ describe('NetworkControls', () => {
   it('renders fit to screen button', () => {
     render(<NetworkControls {...defaultProps} />);
 
-    expect(screen.getByRole('button', { name: /fit to screen/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /fit all nodes/i })).toBeInTheDocument();
   });
 
-  it('renders reset view button', () => {
+  it('renders center view button', () => {
     render(<NetworkControls {...defaultProps} />);
 
-    expect(screen.getByRole('button', { name: /reset view/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /center view/i })).toBeInTheDocument();
   });
 
   it('calls onZoomIn when zoom in button is clicked', () => {
@@ -61,15 +61,15 @@ describe('NetworkControls', () => {
   it('calls onFit when fit button is clicked', () => {
     render(<NetworkControls {...defaultProps} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /fit to screen/i }));
+    fireEvent.click(screen.getByRole('button', { name: /fit all nodes/i }));
 
     expect(defaultProps.onFit).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onReset when reset button is clicked', () => {
+  it('calls onReset when center view button is clicked', () => {
     render(<NetworkControls {...defaultProps} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /reset view/i }));
+    fireEvent.click(screen.getByRole('button', { name: /center view/i }));
 
     expect(defaultProps.onReset).toHaveBeenCalledTimes(1);
   });
