@@ -111,8 +111,10 @@ describe('Scenarios', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('3')).toBeInTheDocument(); // 3 scenarios
-      expect(screen.getByText('Scenarios')).toBeInTheDocument();
+      // Verify scenarios are loaded by checking for scenario names
+      expect(screen.getByRole('heading', { name: 'Home Network Basics' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Router Hardening' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Small Office Audit' })).toBeInTheDocument();
     });
   });
 

@@ -17,6 +17,8 @@ import type {
   ApiResult,
 } from '@/types';
 
+const log = logger.create('ScenarioService');
+
 /**
  * Options for listing scenarios.
  */
@@ -39,7 +41,7 @@ export async function listScenarios(
   options: ScenarioListOptions = {}
 ): Promise<ApiResult<ScenarioSummary[]>> {
   const { packId, difficulty, tag } = options;
-  logger.debug('Listing scenarios', { packId, difficulty, tag });
+  log.debug('Listing scenarios', { packId, difficulty, tag });
 
   const params = new URLSearchParams();
   if (packId) params.append('pack_id', packId);
@@ -59,7 +61,7 @@ export async function listScenarios(
  * @returns ApiResult with full scenario details
  */
 export async function getScenario(scenarioId: string): Promise<ApiResult<Scenario>> {
-  logger.debug('Getting scenario', { scenarioId });
+  log.debug('Getting scenario', { scenarioId });
   return apiClient.get<Scenario>(`/scenarios/${encodeURIComponent(scenarioId)}`);
 }
 
@@ -70,7 +72,7 @@ export async function getScenario(scenarioId: string): Promise<ApiResult<Scenari
  * @returns ApiResult with session data (vulnerabilities hidden)
  */
 export async function startScenario(scenarioId: string): Promise<ApiResult<ScenarioSession>> {
-  logger.info('Starting scenario', { scenarioId });
+  log.info('Starting scenario', { scenarioId });
   return apiClient.get<ScenarioSession>(
     `/scenarios/${encodeURIComponent(scenarioId)}/start`
   );
@@ -82,7 +84,7 @@ export async function startScenario(scenarioId: string): Promise<ApiResult<Scena
  * @returns ApiResult with list of content packs with scenario counts
  */
 export async function listPacks(): Promise<ApiResult<ContentPack[]>> {
-  logger.debug('Listing content packs');
+  log.debug('Listing content packs');
   return apiClient.get<ContentPack[]>('/scenarios/packs');
 }
 
@@ -92,7 +94,7 @@ export async function listPacks(): Promise<ApiResult<ContentPack[]>> {
  * @returns ApiResult with sorted list of unique tags
  */
 export async function getTags(): Promise<ApiResult<string[]>> {
-  logger.debug('Getting scenario tags');
+  log.debug('Getting scenario tags');
   return apiClient.get<string[]>('/scenarios/tags');
 }
 
@@ -102,7 +104,7 @@ export async function getTags(): Promise<ApiResult<string[]>> {
  * @returns ApiResult with list of difficulty levels with descriptions
  */
 export async function getDifficulties(): Promise<ApiResult<DifficultyInfo[]>> {
-  logger.debug('Getting difficulty levels');
+  log.debug('Getting difficulty levels');
   return apiClient.get<DifficultyInfo[]>('/scenarios/difficulties');
 }
 
@@ -115,7 +117,7 @@ export async function reloadScenarios(): Promise<ApiResult<{
   message: string;
   scenario_count: number;
 }>> {
-  logger.info('Reloading scenarios');
+  log.info('Reloading scenarios');
   return apiClient.post('/scenarios/reload', {});
 }
 

@@ -14,6 +14,8 @@ import type {
   LLMHealthStatus,
 } from '@/types';
 
+const log = logger.create('LLMService');
+
 /**
  * Get an explanation for a topic.
  *
@@ -25,14 +27,14 @@ export async function getExplanation(
   request: ExplanationRequest,
   skipCache = false
 ): Promise<ExplanationResponse> {
-  logger.debug('Requesting explanation', { topic: request.topic, type: request.explanation_type });
+  log.debug('Requesting explanation', { topic: request.topic, type: request.explanation_type });
 
   const response = await apiClient.post<ExplanationResponse>(
     `/llm/explain?skip_cache=${skipCache}`,
     request
   );
 
-  logger.info('Explanation received', {
+  log.info('Explanation received', {
     topic: response.topic,
     provider: response.provider,
     cached: response.cached,
@@ -54,7 +56,7 @@ export async function explainVulnerability(
   difficulty: DifficultyLevel = 'beginner',
   context?: string
 ): Promise<ExplanationResponse> {
-  logger.debug('Requesting vulnerability explanation', { vulnType, difficulty });
+  log.debug('Requesting vulnerability explanation', { vulnType, difficulty });
 
   const params = new URLSearchParams({ difficulty });
   if (context) {
@@ -79,7 +81,7 @@ export async function explainRemediation(
   difficulty: DifficultyLevel = 'beginner',
   context?: string
 ): Promise<ExplanationResponse> {
-  logger.debug('Requesting remediation explanation', { vulnType, difficulty });
+  log.debug('Requesting remediation explanation', { vulnType, difficulty });
 
   const params = new URLSearchParams({ difficulty });
   if (context) {
@@ -102,7 +104,7 @@ export async function explainConcept(
   concept: string,
   difficulty: DifficultyLevel = 'beginner'
 ): Promise<ExplanationResponse> {
-  logger.debug('Requesting concept explanation', { concept, difficulty });
+  log.debug('Requesting concept explanation', { concept, difficulty });
 
   const params = new URLSearchParams({ difficulty });
 
@@ -144,7 +146,7 @@ export async function clearCache(): Promise<{
   message: string;
   entries_cleared: number;
 }> {
-  logger.info('Clearing LLM cache');
+  log.info('Clearing LLM cache');
   return apiClient.post('/llm/cache/clear', {});
 }
 
