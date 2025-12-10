@@ -124,8 +124,11 @@ describe('NetworkScan', () => {
     const checkbox = screen.getByRole('checkbox');
     await user.click(checkbox);
 
-    const submitButton = screen.getByRole('button', { name: /start scan/i });
-    expect(submitButton).not.toBeDisabled();
+    // Wait for state update
+    await waitFor(() => {
+      const submitButton = screen.getByRole('button', { name: /start scan/i });
+      expect(submitButton).not.toBeDisabled();
+    });
   });
 
   it('displays consent warning text', () => {
@@ -232,8 +235,10 @@ describe('NetworkScan', () => {
     const deepScanOption = screen.getByText('Deep Scan');
     await user.click(deepScanOption);
 
-    // The radio should be checked
-    const radio = screen.getByDisplayValue('deep');
-    expect(radio).toBeChecked();
+    // Wait for state update
+    await waitFor(() => {
+      const radio = screen.getByDisplayValue('deep');
+      expect(radio).toBeChecked();
+    });
   });
 });

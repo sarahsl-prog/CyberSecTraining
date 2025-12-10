@@ -10,8 +10,8 @@ describe('NetworkControls', () => {
   const defaultProps = {
     onZoomIn: vi.fn(),
     onZoomOut: vi.fn(),
-    onFit: vi.fn(),
-    onReset: vi.fn(),
+    onFitView: vi.fn(),
+    onCenter: vi.fn(),
   };
 
   beforeEach(() => {
@@ -58,20 +58,20 @@ describe('NetworkControls', () => {
     expect(defaultProps.onZoomOut).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onFit when fit button is clicked', () => {
+  it('calls onFitView when fit button is clicked', () => {
     render(<NetworkControls {...defaultProps} />);
 
     fireEvent.click(screen.getByRole('button', { name: /fit all nodes/i }));
 
-    expect(defaultProps.onFit).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onFitView).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onReset when center view button is clicked', () => {
+  it('calls onCenter when center view button is clicked', () => {
     render(<NetworkControls {...defaultProps} />);
 
     fireEvent.click(screen.getByRole('button', { name: /center view/i }));
 
-    expect(defaultProps.onReset).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onCenter).toHaveBeenCalledTimes(1);
   });
 
   it('has proper toolbar role', () => {
