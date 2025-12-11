@@ -212,6 +212,28 @@ Once both backend and frontend are running:
 1. Open your browser to `http://localhost:1420`
 2. The frontend will automatically connect to the backend at `http://localhost:8000`
 
+#### Database Initialization
+
+The SQLite database is automatically created when you first start the backend server. The database file will be created at `backend/data/cybersec.db`.
+
+**For development/testing with sample data:**
+
+```bash
+cd backend
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+python -m app.db.seed_data
+```
+
+This will populate the database with:
+- 1 sample network scan
+- 5 sample devices (router, desktop, laptop, smart TV, printer)
+- 7 vulnerabilities across devices
+- Network topology connections
+- User progress for 3 scenarios
+- User preferences
+
+**Note:** The database is automatically initialized on first run. You only need to run the seed script if you want sample data for development/testing.
+
 ### Testing
 
 Run all backend tests:
