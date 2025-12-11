@@ -7,7 +7,7 @@ management endpoints.
 
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PortSchema(BaseModel):
@@ -47,8 +47,7 @@ class DeviceUpdate(BaseModel):
     device_type: Optional[str] = Field(None, description="Device type")
     os: Optional[str] = Field(None, description="Operating system")
 
-    class Config:
-        extra = "forbid"
+    model_config = ConfigDict(extra="forbid")
 
 
 class DeviceResponse(DeviceBase):
@@ -63,9 +62,9 @@ class DeviceResponse(DeviceBase):
     created_at: Optional[datetime] = Field(None, description="Created timestamp")
     updated_at: Optional[datetime] = Field(None, description="Updated timestamp")
 
-    class Config:
-        from_attributes = True
-        json_schema_extra = {
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
             "example": {
                 "id": "550e8400-e29b-41d4-a716-446655440000",
                 "scan_id": "550e8400-e29b-41d4-a716-446655440001",
@@ -86,6 +85,7 @@ class DeviceResponse(DeviceBase):
                 "updated_at": "2024-12-08T12:00:00Z",
             }
         }
+    )
 
 
 class DeviceListResponse(BaseModel):

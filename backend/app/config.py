@@ -8,6 +8,7 @@ variables with sensible defaults. Configuration is validated using Pydantic.
 from pathlib import Path
 from typing import Optional
 
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
@@ -56,10 +57,11 @@ class Settings(BaseSettings):
     packs_dir: Path = Path("../packs")
     knowledge_base_dir: Path = Path("../knowledge-base")
 
-    class Config:
-        env_file = "../.env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = ConfigDict(
+        env_file="../.env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
 
 
 # Global settings instance
