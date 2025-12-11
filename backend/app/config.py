@@ -6,7 +6,7 @@ variables with sensible defaults. Configuration is validated using Pydantic.
 """
 
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Literal
 
 from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     # Feature flags
     enable_real_scanning: bool = True
     enable_telemetry: bool = False
+
+    # Application Mode
+    # Default mode for the application: 'training' (safe, fake data) or 'live' (real scanning)
+    # Training mode is recommended for learning and classroom environments
+    default_application_mode: Literal['training', 'live'] = 'training'
 
     # Network Scanning Configuration
     scan_timeout: int = 300  # Max scan duration in seconds (5 minutes)
