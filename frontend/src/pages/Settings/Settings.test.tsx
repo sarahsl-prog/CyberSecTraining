@@ -107,9 +107,15 @@ describe('Settings', () => {
       </TestWrapper>
     );
 
-    // Use exact match to avoid matching "Extra Large"
-    const largeButton = screen.getByRole('button', { name: /^Large$/i });
-    await user.click(largeButton);
+    // Find the Large button by its text content
+    // Use getAllByText and find the button (not the "Extra Large" text)
+    const largeTexts = screen.getAllByText(/Large/);
+    const largeButton = largeTexts.find(
+      (el) => el.textContent === 'Large' && el.closest('button')
+    )?.closest('button');
+
+    expect(largeButton).toBeDefined();
+    await user.click(largeButton!);
 
     expect(largeButton).toHaveAttribute('aria-pressed', 'true');
   });

@@ -166,6 +166,10 @@ export function Settings() {
                   value={fontSize}
                   onChange={(e) => handleFontSizeChange(Number(e.target.value))}
                   className={styles.slider}
+                  aria-valuenow={fontSize}
+                  aria-valuemin={100}
+                  aria-valuemax={200}
+                  aria-label={`Font size: ${fontSize}%`}
                 />
                 <span className={styles.sliderValue}>{fontSize}%</span>
               </div>

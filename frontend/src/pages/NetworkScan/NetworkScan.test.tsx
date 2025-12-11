@@ -213,11 +213,21 @@ describe('NetworkScan', () => {
       </TestWrapper>
     );
 
-    const input = screen.getByLabelText(/network target/i);
-    await user.clear(input);
-    await user.type(input, '10.0.0.0/24');
+    const input = screen.getByLabelText(/network target/i) as HTMLInputElement;
 
-    expect(input).toHaveValue('10.0.0.0/24');
+    // Wait for network detection to complete and input to be populated
+    await waitFor(() => {
+      expect(input.value).toBeTruthy();
+      expect(input).not.toBeDisabled();
+    });
+
+    // Change input value directly using fireEvent
+    fireEvent.change(input, { target: { value: '10.0.0.0/24' } });
+
+    // Wait for state update to complete
+    await waitFor(() => {
+      expect(input).toHaveValue('10.0.0.0/24');
+    });
   });
 
   it('allows selecting different scan types', async () => {

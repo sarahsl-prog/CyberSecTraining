@@ -109,10 +109,11 @@ class TestScanOrchestrator:
     @pytest.mark.asyncio
     async def test_scan_history(self):
         """Test that completed scans are stored in history."""
-        # Patch scanner
+        # Patch scanner and settings
         with patch.object(
             self.orchestrator, "_get_scanner"
-        ) as mock_get_scanner:
+        ) as mock_get_scanner, patch("app.services.scanner.orchestrator.settings") as mock_settings:
+            mock_settings.enable_real_scanning = True
             mock_result = ScanResult(
                 scan_id="test-123",
                 status=ScanStatus.COMPLETED,

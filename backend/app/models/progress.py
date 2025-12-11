@@ -17,6 +17,7 @@ class Progress(Base, IdMixin, TimestampMixin):
     hints_used = Column(Integer, default=0)
     time_spent = Column(Integer, default=0)  # seconds
     completed_at = Column(DateTime, nullable=True)
+    last_accessed_at = Column(DateTime, nullable=True)
 
     def __repr__(self) -> str:
         return f"<Progress(scenario={self.scenario_id}, completed={self.completed})>"

@@ -104,17 +104,9 @@ class ScanOrchestrator:
             logger.warning("Scan attempted without user consent")
             audit_logger.warning(f"Scan blocked - no consent | target={target}")
             raise PermissionError(
-                "User must confirm ownership of the network before scanning. "
+                "User consent is required. You must confirm ownership of the network before scanning. "
                 "This tool should only be used on networks you own or have "
                 "explicit permission to scan."
-            )
-
-        # Check if scanning is enabled
-        if not settings.enable_real_scanning:
-            logger.warning("Real scanning is disabled")
-            raise RuntimeError(
-                "Real network scanning is disabled. "
-                "Enable it in settings or use scenario mode."
             )
 
         # Validate target
@@ -122,6 +114,14 @@ class ScanOrchestrator:
 
         # Check rate limits
         await self._check_rate_limits()
+
+        # Check if scanning is enabled (after validation checks for testability)
+        if not settings.enable_real_scanning:
+            logger.warning("Real scanning is disabled")
+            raise RuntimeError(
+                "Real network scanning is disabled. "
+                "Enable it in settings or use scenario mode."
+            )
 
         # Start scan
         async with self._scan_lock:
