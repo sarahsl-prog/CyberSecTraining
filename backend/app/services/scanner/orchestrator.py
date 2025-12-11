@@ -8,19 +8,21 @@ It serves as the main entry point for the API layer to interact with scanning.
 
 import asyncio
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Union
 import uuid
 
 from app.core.logging import get_logger, get_audit_logger
 from app.config import settings
 from app.services.scanner.base import ScanType, ScanStatus, ScanResult, DeviceInfo
 from app.services.scanner.nmap_scanner import NmapScanner
+from app.services.scanner.fake_network_generator import FakeNetworkGenerator
 from app.services.scanner.network_validator import (
     NetworkValidator,
     NetworkValidationError,
     get_local_network,
     get_network_interfaces,
 )
+from app.dependencies import get_datastore
 
 logger = get_logger("scanner")
 audit_logger = get_audit_logger()
@@ -49,7 +51,8 @@ class ScanOrchestrator:
 
     def __init__(self):
         """Initialize the scan orchestrator."""
-        self._scanner: Optional[NmapScanner] = None
+        self._nmap_scanner: Optional[NmapScanner] = None
+        self._fake_scanner: Optional[FakeNetworkGenerator] = None
         self._validator = NetworkValidator(max_network_size=settings.max_network_size)
         self._scan_history: dict[str, ScanResult] = {}
         self._current_scan: Optional[str] = None
@@ -58,19 +61,53 @@ class ScanOrchestrator:
 
         logger.info("ScanOrchestrator initialized")
 
-    def _get_scanner(self) -> NmapScanner:
+    def _get_application_mode(self) -> str:
         """
-        Lazy-load the nmap scanner.
+        Get the current application mode from settings.
 
         Returns:
-            NmapScanner instance
+            'training' or 'live' mode string
+
+        Note:
+            Defaults to 'training' if mode is not set in preferences.
+        """
+        try:
+            datastore = get_datastore()
+            mode_settings_json = datastore.get_preference("local", "mode_settings")
+
+            if mode_settings_json:
+                import json
+                mode_data = json.loads(mode_settings_json)
+                return mode_data.get("mode", "training")
+
+            # Default to training mode if not set
+            return "training"
+        except Exception as e:
+            logger.warning(f"Failed to get application mode, defaulting to training: {e}")
+            return "training"
+
+    def _get_scanner(self) -> Union[NmapScanner, FakeNetworkGenerator]:
+        """
+        Get the appropriate scanner based on application mode.
+
+        Returns:
+            NmapScanner for live mode, FakeNetworkGenerator for training mode
 
         Raises:
-            RuntimeError: If nmap is not available
+            RuntimeError: If nmap is not available in live mode
         """
-        if self._scanner is None:
-            self._scanner = NmapScanner()
-        return self._scanner
+        mode = self._get_application_mode()
+
+        if mode == "live":
+            # Live mode - use real nmap scanner
+            if self._nmap_scanner is None:
+                self._nmap_scanner = NmapScanner()
+            return self._nmap_scanner
+        else:
+            # Training mode - use fake network generator
+            if self._fake_scanner is None:
+                self._fake_scanner = FakeNetworkGenerator(settings)
+            return self._fake_scanner
 
     async def start_scan(
         self,
@@ -99,10 +136,13 @@ class ScanOrchestrator:
             PermissionError: If user consent is not provided
             RuntimeError: If another scan is already running
         """
+        # Get current application mode
+        mode = self._get_application_mode()
+
         # Verify user consent
         if not user_consent:
-            logger.warning("Scan attempted without user consent")
-            audit_logger.warning(f"Scan blocked - no consent | target={target}")
+            logger.warning(f"Scan attempted without user consent | mode={mode}")
+            audit_logger.warning(f"Scan blocked - no consent | target={target} | mode={mode}")
             raise PermissionError(
                 "User consent is required. You must confirm ownership of the network before scanning. "
                 "This tool should only be used on networks you own or have "
@@ -115,23 +155,24 @@ class ScanOrchestrator:
         # Check rate limits
         await self._check_rate_limits()
 
-        # Check if scanning is enabled (after validation checks for testability)
-        if not settings.enable_real_scanning:
-            logger.warning("Real scanning is disabled")
+        # Check if real scanning is enabled (only in live mode)
+        if mode == "live" and not settings.enable_real_scanning:
+            logger.warning("Real scanning is disabled but live mode is active")
             raise RuntimeError(
                 "Real network scanning is disabled. "
-                "Enable it in settings or use scenario mode."
+                "Enable it in settings or switch to training mode."
             )
 
         # Start scan
         async with self._scan_lock:
             scanner = self._get_scanner()
 
-            # Log audit event
+            # Log audit event with mode information
             audit_logger.info(
                 f"Scan started with consent | "
                 f"target={target} | "
                 f"type={scan_type.value} | "
+                f"mode={mode} | "
                 f"user_consent={user_consent}"
             )
 
@@ -238,13 +279,13 @@ class ScanOrchestrator:
         Returns:
             ScanResult or None if not found
         """
-        # Check current scanner first
-        if self._scanner:
-            result = self._scanner.get_scan_result(scan_id)
+        # Check current nmap scanner first (only NmapScanner has get_scan_result)
+        if self._nmap_scanner:
+            result = self._nmap_scanner.get_scan_result(scan_id)
             if result:
                 return result
 
-        # Check history
+        # Check history (used by both scanner types)
         return self._scan_history.get(scan_id)
 
     async def cancel_scan(self, scan_id: str) -> bool:
@@ -256,9 +297,13 @@ class ScanOrchestrator:
 
         Returns:
             True if cancelled, False if not found or already complete
+
+        Note:
+            In training mode, scans complete immediately so cancellation is not supported.
         """
-        if self._scanner:
-            cancelled = await self._scanner.cancel_scan(scan_id)
+        # Only NmapScanner supports cancellation (FakeNetworkGenerator completes immediately)
+        if self._nmap_scanner:
+            cancelled = await self._nmap_scanner.cancel_scan(scan_id)
             if cancelled:
                 self._current_scan = None
                 return True
@@ -279,10 +324,10 @@ class ScanOrchestrator:
         Returns:
             List of ScanResult objects, most recent first
         """
-        # Combine with scanner's active scans
+        # Combine with nmap scanner's active scans (only NmapScanner has get_all_scans)
         all_scans = dict(self._scan_history)
-        if self._scanner:
-            for scan in self._scanner.get_all_scans():
+        if self._nmap_scanner:
+            for scan in self._nmap_scanner.get_all_scans():
                 all_scans[scan.scan_id] = scan
 
         # Sort by start time (most recent first)

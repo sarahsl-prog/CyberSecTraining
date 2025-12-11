@@ -338,6 +338,7 @@ class FakeNetworkGenerator:
         target: str,
         scan_type: ScanType = ScanType.QUICK,
         port_range: Optional[str] = None,
+        scan_id: Optional[str] = None,
     ) -> ScanResult:
         """
         Generate fake network scan results.
@@ -350,6 +351,7 @@ class FakeNetworkGenerator:
             target: Target IP range in CIDR notation (e.g., "192.168.1.0/24")
             scan_type: Type of scan (affects device count)
             port_range: Port range to scan (ignored for fake data)
+            scan_id: Optional scan ID to use (if not provided, generates one)
 
         Returns:
             ScanResult with generated fake devices
@@ -385,9 +387,12 @@ class FakeNetworkGenerator:
         # Simulate scan progress with realistic timing
         await self._simulate_scan_progress(device_count)
 
+        # Use provided scan_id or generate one based on seed
+        result_scan_id = scan_id if scan_id else f"fake-scan-{seed}"
+
         # Create scan result
         return ScanResult(
-            scan_id=f"fake-scan-{seed}",
+            scan_id=result_scan_id,
             target_range=target,
             scan_type=scan_type,
             status=ScanStatus.COMPLETED,
