@@ -42,17 +42,16 @@ const FONT_SIZES = [
  */
 export function Settings() {
   const {
-    colorMode,
-    fontSize,
-    reduceMotion,
-    focusIndicators,
-    screenReaderOptimized,
+    state,
     setColorMode,
     setFontSize,
-    toggleReduceMotion,
-    toggleFocusIndicators,
-    toggleScreenReaderOptimized,
+    setReduceMotion,
+    setScreenReaderOptimized,
+    setShowFocusIndicator,
+    resetToDefaults,
   } = useAccessibility();
+
+  const { colorMode, fontSize, reduceMotion, showFocusIndicator, screenReaderOptimized } = state;
 
   log.debug('Settings page rendering', { colorMode, fontSize, reduceMotion });
 
@@ -77,11 +76,7 @@ export function Settings() {
    */
   const handleResetSettings = () => {
     log.info('Resetting all settings to defaults');
-    setColorMode('light');
-    setFontSize(100);
-    if (reduceMotion) toggleReduceMotion();
-    if (!focusIndicators) toggleFocusIndicators();
-    if (screenReaderOptimized) toggleScreenReaderOptimized();
+    resetToDefaults();
   };
 
   return (
@@ -190,7 +185,7 @@ export function Settings() {
                   role="switch"
                   aria-checked={reduceMotion}
                   className={`${styles.toggle} ${reduceMotion ? styles.toggleOn : ''}`}
-                  onClick={toggleReduceMotion}
+                  onClick={() => setReduceMotion(!reduceMotion)}
                 >
                   <span className={styles.toggleThumb} />
                 </button>
@@ -209,9 +204,9 @@ export function Settings() {
                 <button
                   type="button"
                   role="switch"
-                  aria-checked={focusIndicators}
-                  className={`${styles.toggle} ${focusIndicators ? styles.toggleOn : ''}`}
-                  onClick={toggleFocusIndicators}
+                  aria-checked={showFocusIndicator}
+                  className={`${styles.toggle} ${showFocusIndicator ? styles.toggleOn : ''}`}
+                  onClick={() => setShowFocusIndicator(!showFocusIndicator)}
                 >
                   <span className={styles.toggleThumb} />
                 </button>
@@ -232,7 +227,7 @@ export function Settings() {
                   role="switch"
                   aria-checked={screenReaderOptimized}
                   className={`${styles.toggle} ${screenReaderOptimized ? styles.toggleOn : ''}`}
-                  onClick={toggleScreenReaderOptimized}
+                  onClick={() => setScreenReaderOptimized(!screenReaderOptimized)}
                 >
                   <span className={styles.toggleThumb} />
                 </button>

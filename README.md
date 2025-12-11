@@ -25,6 +25,7 @@ An accessible, educational cybersecurity tool for learning network security thro
 - **Node.js 18+** - JavaScript runtime for frontend development
 - **Python 3.9+** - Backend API server
 - **npm or yarn** - Package manager (comes with Node.js)
+- **nmap** - Network scanning tool (system package)
 
 **Optional (for desktop app):**
 - **Rust** - Required only for Tauri desktop builds
@@ -49,13 +50,14 @@ An accessible, educational cybersecurity tool for learning network security thro
    npm --version
    ```
 
-2. **Install Python and dependencies:**
+2. **Install Python and system dependencies:**
    ```bash
    sudo apt update
-   sudo apt install python3 python3-pip python3-venv
+   sudo apt install python3 python3-pip python3-venv nmap
 
-   # Verify installation
+   # Verify installations
    python3 --version
+   nmap --version
    ```
 
 3. **For Tauri desktop builds (optional):**
@@ -95,20 +97,35 @@ An accessible, educational cybersecurity tool for learning network security thro
      python --version
      ```
 
-3. **For Tauri desktop builds (optional):**
+3. **Install nmap:**
+   - Download from [nmap.org](https://nmap.org/download.html#windows)
+   - Run the installer (choose "Nmap" and "Npcap" components)
+   - Verify installation:
+     ```cmd
+     nmap --version
+     ```
+
+4. **For Tauri desktop builds (optional):**
    - Install Rust from [rustup.rs](https://rustup.rs/)
    - Install Visual Studio C++ Build Tools from [visualstudio.microsoft.com](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
    - Select "Desktop development with C++" workload
 
 #### WSL (Windows Subsystem for Linux)
 
-**Important:** If using WSL, install Node.js natively within WSL (not the Windows version) to avoid path and permission issues:
+**Important:** If using WSL, install all tools natively within WSL (not the Windows versions) to avoid path and permission issues:
 
 ```bash
 # Follow the Linux instructions above
 # Use nvm to install Node.js within WSL
-# Do NOT use Windows Node.js from within WSL
+# Install nmap via apt
+sudo apt update && sudo apt install nmap
+
+# Verify
+which node  # Should show /home/...
+which nmap  # Should show /usr/bin/nmap
 ```
+
+**Do NOT use Windows versions of Node.js or nmap from within WSL.**
 
 ### Installation
 
@@ -341,6 +358,32 @@ rm -rf node_modules package-lock.json  # Linux/macOS
 
 npm install
 ```
+
+#### Nmap Not Found
+
+**Problem:** Backend fails with "nmap command not found" or similar error.
+
+**Solution:**
+
+Linux/WSL:
+```bash
+sudo apt install nmap
+nmap --version  # Verify installation
+```
+
+Windows:
+1. Download nmap from https://nmap.org/download.html#windows
+2. Run installer and select "Nmap" and "Npcap" components
+3. Restart terminal/IDE
+4. Verify: `nmap --version`
+
+macOS:
+```bash
+brew install nmap
+nmap --version
+```
+
+**Note:** The backend uses `python-nmap` (Python wrapper) which requires the `nmap` system tool to be installed.
 
 ## Project Structure
 
