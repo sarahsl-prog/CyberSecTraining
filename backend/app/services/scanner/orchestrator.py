@@ -125,32 +125,79 @@ class ScanOrchestrator:
 
         # Start scan
         async with self._scan_lock:
-            try:
-                scanner = self._get_scanner()
+            scanner = self._get_scanner()
 
-                # Log audit event
-                audit_logger.info(
-                    f"Scan started with consent | "
-                    f"target={target} | "
-                    f"type={scan_type.value} | "
-                    f"user_consent={user_consent}"
-                )
+            # Log audit event
+            audit_logger.info(
+                f"Scan started with consent | "
+                f"target={target} | "
+                f"type={scan_type.value} | "
+                f"user_consent={user_consent}"
+            )
 
-                # Execute scan
-                logger.info(f"Starting {scan_type.value} scan of {target}")
-                result = await scanner.scan_network(target, scan_type, port_range)
+            # Execute scan asynchronously in background
+            logger.info(f"Starting {scan_type.value} scan of {target}")
 
-                # Store in history
-                self._scan_history[result.scan_id] = result
-                self._current_scan = None
-                self._last_scan_time = datetime.utcnow()
+            # Create initial scan result with PENDING status
+            scan_id = str(uuid.uuid4())
+            result = ScanResult(
+                scan_id=scan_id,
+                target_range=target,
+                scan_type=scan_type,
+                status=ScanStatus.PENDING,
+            )
 
-                return result
+            # Store in history immediately
+            self._scan_history[scan_id] = result
+            self._current_scan = scan_id
 
-            except Exception as e:
-                self._current_scan = None
-                logger.exception(f"Scan failed: {e}")
-                raise
+            # Start scan in background task
+            asyncio.create_task(self._run_scan_background(scan_id, target, scan_type, port_range))
+
+            return result
+
+    async def _run_scan_background(
+        self,
+        scan_id: str,
+        target: str,
+        scan_type: ScanType,
+        port_range: Optional[str] = None,
+    ) -> None:
+        """
+        Run a scan in the background and update the result.
+
+        Args:
+            scan_id: Unique identifier for the scan
+            target: Network target to scan
+            scan_type: Type of scan to perform
+            port_range: Optional custom port range
+        """
+        try:
+            scanner = self._get_scanner()
+
+            # Execute the scan with the provided scan_id
+            result = await scanner.scan_network(target, scan_type, port_range, scan_id=scan_id)
+
+            # Update the stored result with actual scan data
+            if scan_id in self._scan_history:
+                self._scan_history[scan_id] = result
+
+            # Mark as complete
+            self._current_scan = None
+            self._last_scan_time = datetime.utcnow()
+
+            logger.info(f"Background scan {scan_id} completed: {len(result.devices)} devices found")
+
+        except Exception as e:
+            logger.exception(f"Background scan {scan_id} failed: {e}")
+
+            # Update scan status to failed
+            if scan_id in self._scan_history:
+                self._scan_history[scan_id].status = ScanStatus.FAILED
+                self._scan_history[scan_id].error_message = f"Scan error: {str(e)}"
+                self._scan_history[scan_id].completed_at = datetime.utcnow()
+
+            self._current_scan = None
 
     async def _check_rate_limits(self) -> None:
         """
