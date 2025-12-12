@@ -170,6 +170,52 @@
   color: var(--color-muted-foreground);
 }
 
+/* Mode Info */
+.modeInfo {
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border-left: 4px solid;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.modeInfoTraining {
+  background: color-mix(in srgb, #0891b2 10%, var(--color-card)); /* cyan-600 at 10% */
+  border-color: #0891b2;
+}
+
+.modeInfoLive {
+  background: color-mix(in srgb, #ea580c 10%, var(--color-card)); /* orange-600 at 10% */
+  border-color: #ea580c;
+}
+
+.modeInfoHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.modeInfoIcon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.modeInfoTitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.modeInfoText {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-foreground);
+}
+
 /* Consent Section */
 .consentSection {
   padding: var(--spacing-md);

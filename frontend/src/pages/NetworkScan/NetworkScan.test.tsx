@@ -9,6 +9,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { NetworkScan } from './NetworkScan';
 import { AccessibilityProvider } from '@/context/AccessibilityContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { ModeProvider } from '@/context/ModeContext';
 import { mockFetch, mockNetworkInterface, mockScanResponse } from '@/test/mocks';
 
 /**
@@ -18,7 +19,9 @@ function TestWrapper({ children }: { children: React.ReactNode }) {
   return (
     <BrowserRouter>
       <AccessibilityProvider>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <ModeProvider>{children}</ModeProvider>
+        </ThemeProvider>
       </AccessibilityProvider>
     </BrowserRouter>
   );
@@ -27,12 +30,14 @@ function TestWrapper({ children }: { children: React.ReactNode }) {
 describe('NetworkScan', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    global.fetch = vi.fn();
   });
 
   it('renders the page title', () => {
-    // Mock network detection and scan history
+    // Mock API calls in the order they occur
     mockFetch(mockNetworkInterface); // network detect
     mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 }); // scan history
+    mockFetch({ mode: 'training', require_confirmation_for_live: true }); // mode API
 
     render(
       <TestWrapper>
@@ -46,6 +51,7 @@ describe('NetworkScan', () => {
   it('displays the scan form', () => {
     mockFetch(mockNetworkInterface);
     mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+    mockFetch({ mode: 'training', require_confirmation_for_live: true });
 
     render(
       <TestWrapper>
@@ -60,6 +66,7 @@ describe('NetworkScan', () => {
   it('auto-populates detected network', async () => {
     mockFetch(mockNetworkInterface);
     mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+    mockFetch({ mode: 'training', require_confirmation_for_live: true });
 
     render(
       <TestWrapper>
@@ -76,6 +83,7 @@ describe('NetworkScan', () => {
   it('displays scan type options', () => {
     mockFetch(mockNetworkInterface);
     mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+    mockFetch({ mode: 'training', require_confirmation_for_live: true });
 
     render(
       <TestWrapper>
@@ -91,6 +99,7 @@ describe('NetworkScan', () => {
   it('requires consent checkbox to start scan', () => {
     mockFetch(mockNetworkInterface);
     mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+    mockFetch({ mode: 'training', require_confirmation_for_live: true });
 
     render(
       <TestWrapper>
@@ -105,6 +114,7 @@ describe('NetworkScan', () => {
   it('enables submit button when consent is given', async () => {
     mockFetch(mockNetworkInterface);
     mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+    mockFetch({ mode: 'training', require_confirmation_for_live: true });
 
     const user = userEvent.setup();
 
@@ -131,9 +141,10 @@ describe('NetworkScan', () => {
     });
   });
 
-  it('displays consent warning text', () => {
+  it('displays consent text (training mode)', () => {
     mockFetch(mockNetworkInterface);
     mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+    mockFetch({ mode: 'training', require_confirmation_for_live: true });
 
     render(
       <TestWrapper>
@@ -142,7 +153,7 @@ describe('NetworkScan', () => {
     );
 
     expect(
-      screen.getByText(/i confirm that i own or have explicit permission/i)
+      screen.getByText(/i understand this is a training scan/i)
     ).toBeInTheDocument();
   });
 
@@ -155,6 +166,7 @@ describe('NetworkScan', () => {
       page_size: 10,
       pages: 1,
     });
+    mockFetch({ mode: 'training', require_confirmation_for_live: true });
 
     render(
       <TestWrapper>
@@ -168,6 +180,7 @@ describe('NetworkScan', () => {
   it('shows empty state for scan history when no scans', async () => {
     mockFetch(mockNetworkInterface);
     mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+    mockFetch({ mode: 'training', require_confirmation_for_live: true });
 
     render(
       <TestWrapper>
@@ -189,6 +202,7 @@ describe('NetworkScan', () => {
       page_size: 10,
       pages: 1,
     });
+    mockFetch({ mode: 'training', require_confirmation_for_live: true });
 
     render(
       <TestWrapper>
@@ -204,6 +218,7 @@ describe('NetworkScan', () => {
   it('allows changing target input', async () => {
     mockFetch(mockNetworkInterface);
     mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+    mockFetch({ mode: 'training', require_confirmation_for_live: true });
 
     const user = userEvent.setup();
 
@@ -233,6 +248,7 @@ describe('NetworkScan', () => {
   it('allows selecting different scan types', async () => {
     mockFetch(mockNetworkInterface);
     mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
+    mockFetch({ mode: 'training', require_confirmation_for_live: true });
 
     const user = userEvent.setup();
 

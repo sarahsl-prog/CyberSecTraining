@@ -8,8 +8,10 @@
  * - Privacy controls
  */
 
+import { useState } from 'react';
 import { useAccessibility } from '@/context/AccessibilityContext';
-import { Card, Button } from '@/components/common';
+import { useMode } from '@/context/ModeContext';
+import { Card, Button, Modal } from '@/components/common';
 import { logger } from '@/services';
 import styles from './Settings.module.css';
 
@@ -51,9 +53,15 @@ export function Settings() {
     resetToDefaults,
   } = useAccessibility();
 
+  const { mode, setMode, isLoading: isModeLoading } = useMode();
+
   const { colorMode, fontSize, reduceMotion, showFocusIndicator, screenReaderOptimized } = state;
 
-  log.debug('Settings page rendering', { colorMode, fontSize, reduceMotion });
+  // State for confirmation modal
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingMode, setPendingMode] = useState<'training' | 'live' | null>(null);
+
+  log.debug('Settings page rendering', { colorMode, fontSize, reduceMotion, mode });
 
   /**
    * Handle color mode change.
@@ -77,6 +85,46 @@ export function Settings() {
   const handleResetSettings = () => {
     log.info('Resetting all settings to defaults');
     resetToDefaults();
+  };
+
+  /**
+   * Handle mode change request.
+   * Shows confirmation dialog for live mode.
+   */
+  const handleModeChange = (newMode: 'training' | 'live') => {
+    if (newMode === mode) return;
+
+    log.info('Mode change requested', { from: mode, to: newMode });
+
+    // If switching to live mode, show confirmation dialog
+    if (newMode === 'live') {
+      setPendingMode(newMode);
+      setShowConfirmModal(true);
+    } else {
+      // Switching to training mode - no confirmation needed
+      setMode(newMode);
+    }
+  };
+
+  /**
+   * Confirm mode change to live mode.
+   */
+  const handleConfirmModeChange = async () => {
+    if (pendingMode) {
+      log.info('Confirming mode change to live');
+      await setMode(pendingMode);
+      setPendingMode(null);
+      setShowConfirmModal(false);
+    }
+  };
+
+  /**
+   * Cancel mode change.
+   */
+  const handleCancelModeChange = () => {
+    log.info('Canceling mode change');
+    setPendingMode(null);
+    setShowConfirmModal(false);
   };
 
   return (
@@ -240,6 +288,83 @@ export function Settings() {
           </div>
         </Card>
 
+        {/* Application Mode */}
+        <Card title="Application Mode" subtitle="Choose between training and live scanning">
+          <div className={styles.settingsGroup}>
+            <div className={styles.setting}>
+              <div className={styles.modeOptions}>
+                {/* Training Mode Option */}
+                <label
+                  className={`${styles.modeOption} ${
+                    mode === 'training' ? styles.selected : ''
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="applicationMode"
+                    value="training"
+                    checked={mode === 'training'}
+                    onChange={() => handleModeChange('training')}
+                    disabled={isModeLoading}
+                    className={styles.radioInput}
+                  />
+                  <div className={styles.modeContent}>
+                    <div className={styles.modeHeader}>
+                      <span className={styles.modeIcon} aria-hidden="true">
+                        🎓
+                      </span>
+                      <h3 className={styles.modeTitle}>Training Mode</h3>
+                    </div>
+                    <p className={styles.modeDescription}>
+                      Safe practice environment with realistic simulated network data.
+                      Perfect for learning and experimentation without affecting real networks.
+                    </p>
+                    <ul className={styles.modeFeatures}>
+                      <li>✓ No real network scanning</li>
+                      <li>✓ Deterministic, predictable results</li>
+                      <li>✓ Safe for beginners</li>
+                    </ul>
+                  </div>
+                </label>
+
+                {/* Live Mode Option */}
+                <label
+                  className={`${styles.modeOption} ${
+                    mode === 'live' ? styles.selected : ''
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="applicationMode"
+                    value="live"
+                    checked={mode === 'live'}
+                    onChange={() => handleModeChange('live')}
+                    disabled={isModeLoading}
+                    className={styles.radioInput}
+                  />
+                  <div className={styles.modeContent}>
+                    <div className={styles.modeHeader}>
+                      <span className={styles.modeIcon} aria-hidden="true">
+                        ⚡
+                      </span>
+                      <h3 className={styles.modeTitle}>Live Mode</h3>
+                    </div>
+                    <p className={styles.modeDescription}>
+                      Real network scanning using nmap. Only use on networks you own
+                      or have explicit permission to scan.
+                    </p>
+                    <ul className={styles.modeFeatures}>
+                      <li>⚠️ Scans actual networks</li>
+                      <li>⚠️ Requires nmap installation</li>
+                      <li>⚠️ Use with permission only</li>
+                    </ul>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </Card>
+
         {/* Scan Preferences */}
         <Card title="Scan Preferences" subtitle="Default settings for network scans">
           <div className={styles.settingsGroup}>
@@ -362,6 +487,40 @@ export function Settings() {
           </Button>
         </div>
       </div>
+
+      {/* Live Mode Confirmation Modal */}
+      <Modal
+        isOpen={showConfirmModal}
+        onClose={handleCancelModeChange}
+        title="Switch to Live Scanning Mode?"
+      >
+        <div className={styles.confirmModal}>
+          <p className={styles.confirmWarning}>
+            <strong>⚠️ Warning:</strong> You are about to switch to Live Mode,
+            which will perform real network scans on your actual network.
+          </p>
+          <p className={styles.confirmDescription}>
+            Live Mode uses nmap to scan real networks. Only proceed if:
+          </p>
+          <ul className={styles.confirmList}>
+            <li>You own the network you intend to scan</li>
+            <li>You have explicit permission to scan the network</li>
+            <li>You have nmap installed and properly configured</li>
+            <li>You understand the legal implications of network scanning</li>
+          </ul>
+          <p className={styles.confirmNote}>
+            Unauthorized network scanning may be illegal in your jurisdiction.
+          </p>
+          <div className={styles.confirmActions}>
+            <Button variant="outline" onClick={handleCancelModeChange}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmModeChange}>
+              I Understand - Enable Live Mode
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

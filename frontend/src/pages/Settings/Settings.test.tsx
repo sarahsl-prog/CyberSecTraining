@@ -9,6 +9,8 @@ import { BrowserRouter } from 'react-router-dom';
 import { Settings } from './Settings';
 import { AccessibilityProvider } from '@/context/AccessibilityContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { ModeProvider } from '@/context/ModeContext';
+import { mockFetch } from '@/test/mocks';
 
 /**
  * Wrapper component for testing with required providers.
@@ -17,7 +19,9 @@ function TestWrapper({ children }: { children: React.ReactNode }) {
   return (
     <BrowserRouter>
       <AccessibilityProvider>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <ModeProvider>{children}</ModeProvider>
+        </ThemeProvider>
       </AccessibilityProvider>
     </BrowserRouter>
   );
@@ -27,6 +31,9 @@ describe('Settings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    global.fetch = vi.fn();
+    // Mock the mode API endpoint
+    mockFetch({ mode: 'training', require_confirmation_for_live: true });
   });
 
   it('renders the page title', () => {

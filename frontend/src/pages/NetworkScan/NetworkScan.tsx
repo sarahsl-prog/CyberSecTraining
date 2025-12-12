@@ -11,6 +11,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Card, Button, Spinner, EmptyState, ErrorMessage, Progress, Badge } from '@/components/common';
 import { useScan, useNetworkDetect, useNetworkValidation, useScanHistory } from '@/hooks';
+import { useMode } from '@/context/ModeContext';
 import type { ScanType, ScanRequest } from '@/types';
 import { logger } from '@/services';
 import styles from './NetworkScan.module.css';
@@ -52,6 +53,7 @@ export function NetworkScan() {
   const [userConsent, setUserConsent] = useState(false);
 
   // Hooks
+  const { mode } = useMode();
   const { network: detectedNetwork, isLoading: detectingNetwork } = useNetworkDetect();
   const { validate, validation, isValidating, error: validationError, reset: resetValidation } =
     useNetworkValidation();
@@ -228,6 +230,23 @@ export function NetworkScan() {
                 </div>
               </fieldset>
 
+              {/* Mode-specific Information */}
+              <div className={`${styles.modeInfo} ${mode === 'training' ? styles.modeInfoTraining : styles.modeInfoLive}`}>
+                <div className={styles.modeInfoHeader}>
+                  <span className={styles.modeInfoIcon} aria-hidden="true">
+                    {mode === 'training' ? '🎓' : '⚠️'}
+                  </span>
+                  <h3 className={styles.modeInfoTitle}>
+                    {mode === 'training' ? 'Training Mode Active' : 'Live Scanning Mode'}
+                  </h3>
+                </div>
+                <p className={styles.modeInfoText}>
+                  {mode === 'training'
+                    ? 'This scan will use simulated network data for safe practice. No real network scanning will occur.'
+                    : 'This scan will use nmap to perform real network scanning on your actual network. Only proceed if you own the network or have explicit permission to scan it.'}
+                </p>
+              </div>
+
               {/* Consent Checkbox */}
               <div className={styles.consentSection}>
                 <label className={styles.consentLabel}>
@@ -238,8 +257,9 @@ export function NetworkScan() {
                     className={styles.checkbox}
                   />
                   <span className={styles.consentText}>
-                    I confirm that I own or have explicit permission to scan this network.
-                    Unauthorized network scanning may be illegal.
+                    {mode === 'training'
+                      ? 'I understand this is a training scan using simulated network data for educational purposes.'
+                      : 'I confirm that I own or have explicit permission to scan this network. Unauthorized network scanning may be illegal in my jurisdiction.'}
                   </span>
                 </label>
               </div>
