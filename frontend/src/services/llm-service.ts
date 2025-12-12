@@ -17,6 +17,15 @@ import type {
 const log = logger.create('LLMService');
 
 /**
+ * Get the "use local AI" preference from localStorage.
+ */
+function getPreferLocalAI(): boolean {
+  const saved = localStorage.getItem('cybersec-use-local-ai');
+  // Default to true if not set
+  return saved === null || saved === 'true';
+}
+
+/**
  * Get an explanation for a topic.
  *
  * @param request - The explanation request
@@ -29,8 +38,9 @@ export async function getExplanation(
 ): Promise<ExplanationResponse> {
   log.debug('Requesting explanation', { topic: request.topic, type: request.explanation_type });
 
+  const preferLocal = getPreferLocalAI();
   const response = await apiClient.post<ExplanationResponse>(
-    `/llm/explain?skip_cache=${skipCache}`,
+    `/llm/explain?skip_cache=${skipCache}&prefer_local=${preferLocal}`,
     request
   );
 
@@ -58,7 +68,8 @@ export async function explainVulnerability(
 ): Promise<ExplanationResponse> {
   log.debug('Requesting vulnerability explanation', { vulnType, difficulty });
 
-  const params = new URLSearchParams({ difficulty });
+  const preferLocal = getPreferLocalAI();
+  const params = new URLSearchParams({ difficulty, prefer_local: String(preferLocal) });
   if (context) {
     params.append('context', context);
   }
@@ -83,7 +94,8 @@ export async function explainRemediation(
 ): Promise<ExplanationResponse> {
   log.debug('Requesting remediation explanation', { vulnType, difficulty });
 
-  const params = new URLSearchParams({ difficulty });
+  const preferLocal = getPreferLocalAI();
+  const params = new URLSearchParams({ difficulty, prefer_local: String(preferLocal) });
   if (context) {
     params.append('context', context);
   }
@@ -106,7 +118,8 @@ export async function explainConcept(
 ): Promise<ExplanationResponse> {
   log.debug('Requesting concept explanation', { concept, difficulty });
 
-  const params = new URLSearchParams({ difficulty });
+  const preferLocal = getPreferLocalAI();
+  const params = new URLSearchParams({ difficulty, prefer_local: String(preferLocal) });
 
   return apiClient.get<ExplanationResponse>(
     `/llm/explain/concept/${encodeURIComponent(concept)}?${params}`

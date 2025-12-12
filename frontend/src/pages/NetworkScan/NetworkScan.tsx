@@ -79,9 +79,12 @@ export function NetworkScan() {
     }
   }, []);
 
-  // Auto-populate target from detected network
+  // Auto-populate target from detected network (if setting is enabled)
   useEffect(() => {
-    if (detectedNetwork?.network && !target) {
+    const autoDetectEnabled = localStorage.getItem('cybersec-auto-detect-network');
+    const isEnabled = autoDetectEnabled === null || autoDetectEnabled === 'true';
+
+    if (isEnabled && detectedNetwork?.network && !target) {
       setTarget(detectedNetwork.network);
       log.info('Auto-detected network', { network: detectedNetwork.network });
     }

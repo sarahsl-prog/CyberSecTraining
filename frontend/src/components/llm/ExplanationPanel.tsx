@@ -70,7 +70,17 @@ export function ExplanationPanel({
   const [explanation, setExplanation] = useState<ExplanationResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [difficulty, setDifficulty] = useState<DifficultyLevel>('beginner');
+
+  // Load default difficulty from settings
+  const getDefaultDifficulty = (): DifficultyLevel => {
+    const saved = localStorage.getItem('cybersec-explanation-detail');
+    if (saved === 'beginner' || saved === 'intermediate' || saved === 'advanced') {
+      return saved as DifficultyLevel;
+    }
+    return 'standard'; // Map to DifficultyLevel which uses 'standard' not 'intermediate'
+  };
+
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>(getDefaultDifficulty());
 
   /**
    * Fetch explanation from the API.
