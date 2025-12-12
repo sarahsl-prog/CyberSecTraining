@@ -8,6 +8,59 @@ An accessible, educational cybersecurity tool for learning network security thro
 - **Interactive Scenarios** - Learn through guided practice scenarios
 - **LLM-Powered Explanations** - Get AI-assisted explanations tailored to your knowledge level
 - **Accessibility-First** - WCAG 2.1 AA compliant with full screen reader support
+- **Training & Live Modes** - Practice safely with simulated data or scan real networks
+
+## Application Modes
+
+CyberSec Teaching Tool supports two distinct operating modes to accommodate different learning needs and environments:
+
+### Training Mode (Default, Recommended)
+
+**Safe practice environment with simulated network data**
+
+- **No real network scanning** - Generates realistic but fake network data for learning
+- **No nmap required** - Works on any system without special permissions or tools
+- **Deterministic results** - Same IP range always produces the same fake devices for consistent lessons
+- **Fast execution** - Scans complete instantly (<1 second)
+- **Perfect for learning** - Practice network security concepts without risk
+- **Realistic simulation** - Generated devices include proper device types, open ports, services, and vendor information
+
+Training mode is ideal for:
+- Classroom environments
+- Self-paced learning
+- Testing the application
+- Situations where real scanning isn't permitted
+
+### Live Mode
+
+**Real network scanning using nmap**
+
+- **Actual network discovery** - Performs real nmap scans on your network
+- **Requires nmap** - Must have nmap installed and proper system permissions
+- **Real results** - Discovers actual devices on your network
+- **Security considerations** - Only use on networks you own or have explicit permission to scan
+- **Existing functionality** - Uses the same proven scanning engine as before
+
+Live mode is ideal for:
+- Home network security audits
+- Learning how real tools work
+- Testing actual network configurations
+- Advanced users with their own networks
+
+### Switching Between Modes
+
+The current mode is always displayed in the banner at the top of the application:
+- **Training Mode**: Blue banner with "🎓 Training Mode Active"
+- **Live Mode**: Orange banner with "⚡ Live Scanning Mode Active"
+
+**To change modes:**
+
+1. Navigate to **Settings** → **Application Mode**
+2. Select your desired mode (Training or Live)
+3. For Live mode, confirm the change in the warning dialog
+4. The mode persists across sessions
+
+**Important:** Switching to Live mode requires explicit confirmation to ensure you understand the security implications of real network scanning.
 
 ## Tech Stack
 
@@ -25,9 +78,9 @@ An accessible, educational cybersecurity tool for learning network security thro
 - **Node.js 18+** - JavaScript runtime for frontend development
 - **Python 3.9+** - Backend API server
 - **npm or yarn** - Package manager (comes with Node.js)
-- **nmap** - Network scanning tool (system package)
 
-**Optional (for desktop app):**
+**Optional:**
+- **nmap** - Network scanning tool (required only for Live Mode; Training Mode works without it)
 - **Rust** - Required only for Tauri desktop builds
 
 ### Platform-Specific Setup
