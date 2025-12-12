@@ -8,7 +8,7 @@
  * - Privacy controls
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccessibility } from '@/context/AccessibilityContext';
 import { useMode } from '@/context/ModeContext';
 import { Card, Button, Modal } from '@/components/common';
@@ -16,6 +16,23 @@ import { logger } from '@/services';
 import styles from './Settings.module.css';
 
 const log = logger.create('Settings');
+
+/**
+ * LocalStorage keys for user preferences.
+ */
+const STORAGE_KEYS = {
+  DEFAULT_SCAN_TYPE: 'cybersec-default-scan-type',
+  AUTO_DETECT_NETWORK: 'cybersec-auto-detect-network',
+  EXPLANATION_DETAIL: 'cybersec-explanation-detail',
+  USE_LOCAL_AI: 'cybersec-use-local-ai',
+  STORE_SCAN_HISTORY: 'cybersec-store-scan-history',
+} as const;
+
+/**
+ * Type definitions for settings.
+ */
+type ScanType = 'quick' | 'deep' | 'vulnerability';
+type ExplanationDetail = 'brief' | 'standard' | 'detailed';
 
 /**
  * Color mode options.
@@ -57,9 +74,51 @@ export function Settings() {
 
   const { colorMode, fontSize, reduceMotion, showFocusIndicator, screenReaderOptimized } = state;
 
-  // State for confirmation modal
+  // State for mode confirmation modal
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingMode, setPendingMode] = useState<'training' | 'live' | null>(null);
+
+  // State for clear data confirmation modal
+  const [showClearDataModal, setShowClearDataModal] = useState(false);
+
+  // State for scan preferences
+  const [defaultScanType, setDefaultScanType] = useState<ScanType>('quick');
+  const [autoDetectNetwork, setAutoDetectNetwork] = useState(true);
+
+  // State for LLM preferences
+  const [explanationDetail, setExplanationDetail] = useState<ExplanationDetail>('standard');
+  const [useLocalAI, setUseLocalAI] = useState(true);
+
+  // State for privacy settings
+  const [storeScanHistory, setStoreScanHistory] = useState(true);
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const loadSettings = () => {
+      try {
+        const savedScanType = localStorage.getItem(STORAGE_KEYS.DEFAULT_SCAN_TYPE) as ScanType | null;
+        if (savedScanType) setDefaultScanType(savedScanType);
+
+        const savedAutoDetect = localStorage.getItem(STORAGE_KEYS.AUTO_DETECT_NETWORK);
+        if (savedAutoDetect !== null) setAutoDetectNetwork(savedAutoDetect === 'true');
+
+        const savedExplanation = localStorage.getItem(STORAGE_KEYS.EXPLANATION_DETAIL) as ExplanationDetail | null;
+        if (savedExplanation) setExplanationDetail(savedExplanation);
+
+        const savedLocalAI = localStorage.getItem(STORAGE_KEYS.USE_LOCAL_AI);
+        if (savedLocalAI !== null) setUseLocalAI(savedLocalAI === 'true');
+
+        const savedHistory = localStorage.getItem(STORAGE_KEYS.STORE_SCAN_HISTORY);
+        if (savedHistory !== null) setStoreScanHistory(savedHistory === 'true');
+
+        log.debug('Settings loaded from localStorage');
+      } catch (error) {
+        log.error('Failed to load settings from localStorage', error);
+      }
+    };
+
+    loadSettings();
+  }, []);
 
   log.debug('Settings page rendering', { colorMode, fontSize, reduceMotion, mode });
 
@@ -125,6 +184,99 @@ export function Settings() {
     log.info('Canceling mode change');
     setPendingMode(null);
     setShowConfirmModal(false);
+  };
+
+  /**
+   * Handle scan type change.
+   */
+  const handleScanTypeChange = (type: ScanType) => {
+    log.info('Changing default scan type', { from: defaultScanType, to: type });
+    setDefaultScanType(type);
+    localStorage.setItem(STORAGE_KEYS.DEFAULT_SCAN_TYPE, type);
+  };
+
+  /**
+   * Handle auto-detect network toggle.
+   */
+  const handleAutoDetectToggle = () => {
+    const newValue = !autoDetectNetwork;
+    log.info('Toggling auto-detect network', { from: autoDetectNetwork, to: newValue });
+    setAutoDetectNetwork(newValue);
+    localStorage.setItem(STORAGE_KEYS.AUTO_DETECT_NETWORK, String(newValue));
+  };
+
+  /**
+   * Handle explanation detail level change.
+   */
+  const handleExplanationDetailChange = (level: ExplanationDetail) => {
+    log.info('Changing explanation detail level', { from: explanationDetail, to: level });
+    setExplanationDetail(level);
+    localStorage.setItem(STORAGE_KEYS.EXPLANATION_DETAIL, level);
+  };
+
+  /**
+   * Handle use local AI toggle.
+   */
+  const handleUseLocalAIToggle = () => {
+    const newValue = !useLocalAI;
+    log.info('Toggling use local AI', { from: useLocalAI, to: newValue });
+    setUseLocalAI(newValue);
+    localStorage.setItem(STORAGE_KEYS.USE_LOCAL_AI, String(newValue));
+  };
+
+  /**
+   * Handle store scan history toggle.
+   */
+  const handleStoreScanHistoryToggle = () => {
+    const newValue = !storeScanHistory;
+    log.info('Toggling store scan history', { from: storeScanHistory, to: newValue });
+    setStoreScanHistory(newValue);
+    localStorage.setItem(STORAGE_KEYS.STORE_SCAN_HISTORY, String(newValue));
+  };
+
+  /**
+   * Handle clear all data request.
+   */
+  const handleClearDataRequest = () => {
+    log.info('Clear data requested');
+    setShowClearDataModal(true);
+  };
+
+  /**
+   * Confirm and execute clear all data.
+   */
+  const handleConfirmClearData = () => {
+    log.info('Clearing all user data');
+    try {
+      // Clear all settings localStorage keys
+      Object.values(STORAGE_KEYS).forEach(key => {
+        localStorage.removeItem(key);
+      });
+
+      // Reset states to defaults
+      setDefaultScanType('quick');
+      setAutoDetectNetwork(true);
+      setExplanationDetail('standard');
+      setUseLocalAI(true);
+      setStoreScanHistory(true);
+
+      // Also reset accessibility settings
+      resetToDefaults();
+
+      log.info('All user data cleared successfully');
+    } catch (error) {
+      log.error('Failed to clear user data', error);
+    } finally {
+      setShowClearDataModal(false);
+    }
+  };
+
+  /**
+   * Cancel clear data operation.
+   */
+  const handleCancelClearData = () => {
+    log.info('Clear data canceled');
+    setShowClearDataModal(false);
   };
 
   return (
@@ -375,7 +527,11 @@ export function Settings() {
                   Pre-selected scan type for new scans
                 </p>
               </div>
-              <select className={styles.select} defaultValue="quick">
+              <select
+                className={styles.select}
+                value={defaultScanType}
+                onChange={(e) => handleScanTypeChange(e.target.value as ScanType)}
+              >
                 <option value="quick">Quick Scan</option>
                 <option value="deep">Deep Scan</option>
                 <option value="vulnerability">Vulnerability Scan</option>
@@ -393,9 +549,9 @@ export function Settings() {
                 <button
                   type="button"
                   role="switch"
-                  aria-checked={true}
-                  className={`${styles.toggle} ${styles.toggleOn}`}
-                  onClick={() => {}}
+                  aria-checked={autoDetectNetwork}
+                  className={`${styles.toggle} ${autoDetectNetwork ? styles.toggleOn : ''}`}
+                  onClick={handleAutoDetectToggle}
                 >
                   <span className={styles.toggleThumb} />
                 </button>
@@ -414,7 +570,11 @@ export function Settings() {
                   How detailed should AI explanations be
                 </p>
               </div>
-              <select className={styles.select} defaultValue="standard">
+              <select
+                className={styles.select}
+                value={explanationDetail}
+                onChange={(e) => handleExplanationDetailChange(e.target.value as ExplanationDetail)}
+              >
                 <option value="brief">Brief</option>
                 <option value="standard">Standard</option>
                 <option value="detailed">Detailed</option>
@@ -432,9 +592,9 @@ export function Settings() {
                 <button
                   type="button"
                   role="switch"
-                  aria-checked={true}
-                  className={`${styles.toggle} ${styles.toggleOn}`}
-                  onClick={() => {}}
+                  aria-checked={useLocalAI}
+                  className={`${styles.toggle} ${useLocalAI ? styles.toggleOn : ''}`}
+                  onClick={handleUseLocalAIToggle}
                 >
                   <span className={styles.toggleThumb} />
                 </button>
@@ -457,9 +617,9 @@ export function Settings() {
                 <button
                   type="button"
                   role="switch"
-                  aria-checked={true}
-                  className={`${styles.toggle} ${styles.toggleOn}`}
-                  onClick={() => {}}
+                  aria-checked={storeScanHistory}
+                  className={`${styles.toggle} ${storeScanHistory ? styles.toggleOn : ''}`}
+                  onClick={handleStoreScanHistoryToggle}
                 >
                   <span className={styles.toggleThumb} />
                 </button>
@@ -473,7 +633,7 @@ export function Settings() {
                   Delete all stored scan data and preferences
                 </p>
               </div>
-              <Button variant="destructive" size="sm">
+              <Button variant="destructive" size="sm" onClick={handleClearDataRequest}>
                 Clear All Data
               </Button>
             </div>
@@ -517,6 +677,39 @@ export function Settings() {
             </Button>
             <Button variant="destructive" onClick={handleConfirmModeChange}>
               I Understand - Enable Live Mode
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Clear Data Confirmation Modal */}
+      <Modal
+        isOpen={showClearDataModal}
+        onClose={handleCancelClearData}
+        title="Clear All Data?"
+      >
+        <div className={styles.confirmModal}>
+          <p className={styles.confirmWarning}>
+            <strong>⚠️ Warning:</strong> This will permanently delete all your stored data and reset all settings to defaults.
+          </p>
+          <p className={styles.confirmDescription}>
+            The following data will be cleared:
+          </p>
+          <ul className={styles.confirmList}>
+            <li>All user preferences and settings</li>
+            <li>Accessibility customizations</li>
+            <li>Scan preferences</li>
+            <li>AI assistant preferences</li>
+          </ul>
+          <p className={styles.confirmNote}>
+            This action cannot be undone.
+          </p>
+          <div className={styles.confirmActions}>
+            <Button variant="outline" onClick={handleCancelClearData}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmClearData}>
+              Clear All Data
             </Button>
           </div>
         </div>
