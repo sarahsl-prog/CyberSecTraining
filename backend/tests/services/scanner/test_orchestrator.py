@@ -138,12 +138,18 @@ class TestScanOrchestrator:
     @pytest.mark.asyncio
     async def test_get_scan_history(self):
         """Test getting scan history."""
-        # Add some scans to history
+        # Add some scans to datastore (scans are now loaded from database)
         for i in range(5):
-            self.orchestrator._scan_history[f"scan-{i}"] = ScanResult(
+            scan_time = datetime.utcnow() - timedelta(minutes=i)
+            self.orchestrator._datastore.save_scan(
+                user_id="local",
                 scan_id=f"scan-{i}",
-                status=ScanStatus.COMPLETED,
-                started_at=datetime.utcnow() - timedelta(minutes=i),
+                scan_type="quick",
+                status="completed",
+                target_range="192.168.1.0/24",
+                started_at=scan_time,
+                completed_at=scan_time,
+                progress=100.0,
             )
 
         # Get history with limit

@@ -182,6 +182,28 @@ class ScanStatusResponse(BaseModel):
     error_message: Optional[str] = Field(None, description="Error if failed")
 
 
+class PaginatedScanResponse(BaseModel):
+    """Paginated response for scan history."""
+
+    items: list[ScanResponse] = Field(default_factory=list, description="Scan items")
+    total: int = Field(..., description="Total number of scans")
+    page: int = Field(..., description="Current page number (1-indexed)")
+    page_size: int = Field(..., description="Number of items per page")
+    pages: int = Field(..., description="Total number of pages")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "items": [],
+                "total": 0,
+                "page": 1,
+                "page_size": 10,
+                "pages": 0,
+            }
+        }
+    )
+
+
 class NetworkInterfaceResponse(BaseModel):
     """Response model for network interface information."""
 

@@ -391,7 +391,9 @@ export function Settings() {
                   className={`${styles.toggle} ${reduceMotion ? styles.toggleOn : ''}`}
                   onClick={() => setReduceMotion(!reduceMotion)}
                 >
-                  <span className={styles.toggleThumb} />
+                  <span className={styles.toggleThumb}>
+                    {reduceMotion && <span className={styles.checkmark}>✓</span>}
+                  </span>
                 </button>
               </label>
             </div>
@@ -412,7 +414,9 @@ export function Settings() {
                   className={`${styles.toggle} ${showFocusIndicator ? styles.toggleOn : ''}`}
                   onClick={() => setShowFocusIndicator(!showFocusIndicator)}
                 >
-                  <span className={styles.toggleThumb} />
+                  <span className={styles.toggleThumb}>
+                    {showFocusIndicator && <span className={styles.checkmark}>✓</span>}
+                  </span>
                 </button>
               </label>
             </div>
@@ -433,7 +437,9 @@ export function Settings() {
                   className={`${styles.toggle} ${screenReaderOptimized ? styles.toggleOn : ''}`}
                   onClick={() => setScreenReaderOptimized(!screenReaderOptimized)}
                 >
-                  <span className={styles.toggleThumb} />
+                  <span className={styles.toggleThumb}>
+                    {screenReaderOptimized && <span className={styles.checkmark}>✓</span>}
+                  </span>
                 </button>
               </label>
             </div>
@@ -553,7 +559,9 @@ export function Settings() {
                   className={`${styles.toggle} ${autoDetectNetwork ? styles.toggleOn : ''}`}
                   onClick={handleAutoDetectToggle}
                 >
-                  <span className={styles.toggleThumb} />
+                  <span className={styles.toggleThumb}>
+                    {autoDetectNetwork && <span className={styles.checkmark}>✓</span>}
+                  </span>
                 </button>
               </label>
             </div>
@@ -596,7 +604,9 @@ export function Settings() {
                   className={`${styles.toggle} ${useLocalAI ? styles.toggleOn : ''}`}
                   onClick={handleUseLocalAIToggle}
                 >
-                  <span className={styles.toggleThumb} />
+                  <span className={styles.toggleThumb}>
+                    {useLocalAI && <span className={styles.checkmark}>✓</span>}
+                  </span>
                 </button>
               </label>
             </div>
@@ -621,7 +631,9 @@ export function Settings() {
                   className={`${styles.toggle} ${storeScanHistory ? styles.toggleOn : ''}`}
                   onClick={handleStoreScanHistoryToggle}
                 >
-                  <span className={styles.toggleThumb} />
+                  <span className={styles.toggleThumb}>
+                    {storeScanHistory && <span className={styles.checkmark}>✓</span>}
+                  </span>
                 </button>
               </label>
             </div>

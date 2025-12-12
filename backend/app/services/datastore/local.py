@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.models.preference import Preference
 from app.models.progress import Progress
+from app.models.scan import Scan
 from app.services.datastore.base import DataStore
 
 
@@ -156,6 +157,132 @@ class LocalDataStore(DataStore):
                 return True
             return False
 
+    # ==================== Scan History ====================
+
+    def save_scan(
+        self,
+        user_id: str,
+        scan_id: str,
+        scan_type: str,
+        status: str,
+        target_range: Optional[str] = None,
+        port_range: Optional[str] = None,
+        started_at: Optional[Any] = None,
+        completed_at: Optional[Any] = None,
+        progress: float = 0.0,
+        scanned_hosts: int = 0,
+        total_hosts: int = 0,
+        results_summary: Optional[str] = None,
+    ) -> None:
+        """Save or update a scan record."""
+        with self._get_session() as session:
+            scan = session.query(Scan).filter(Scan.id == scan_id).first()
+
+            if scan:
+                # Update existing scan
+                scan.scan_type = scan_type
+                scan.status = status
+                scan.target_range = target_range
+                scan.port_range = port_range
+                scan.started_at = started_at
+                scan.completed_at = completed_at
+                scan.progress = progress
+                scan.scanned_hosts = scanned_hosts
+                scan.total_hosts = total_hosts
+                scan.results_summary = results_summary
+            else:
+                # Create new scan
+                scan = Scan(
+                    id=scan_id,
+                    scan_type=scan_type,
+                    status=status,
+                    target_range=target_range,
+                    port_range=port_range,
+                    started_at=started_at,
+                    completed_at=completed_at,
+                    progress=progress,
+                    scanned_hosts=scanned_hosts,
+                    total_hosts=total_hosts,
+                    results_summary=results_summary,
+                    timestamp=datetime.utcnow(),
+                )
+                session.add(scan)
+
+            session.commit()
+
+    def get_scan(self, user_id: str, scan_id: str) -> Optional[dict[str, Any]]:
+        """Get a scan record by ID."""
+        with self._get_session() as session:
+            scan = session.query(Scan).filter(Scan.id == scan_id).first()
+
+            if not scan:
+                return None
+
+            return {
+                "scan_id": scan.id,
+                "scan_type": scan.scan_type,
+                "status": scan.status,
+                "target_range": scan.target_range,
+                "port_range": scan.port_range,
+                "started_at": scan.started_at.isoformat() if scan.started_at else None,
+                "completed_at": scan.completed_at.isoformat() if scan.completed_at else None,
+                "progress": scan.progress,
+                "scanned_hosts": scan.scanned_hosts,
+                "total_hosts": scan.total_hosts,
+                "results_summary": scan.results_summary,
+                "timestamp": scan.timestamp.isoformat() if scan.timestamp else None,
+            }
+
+    def list_scans(
+        self,
+        user_id: str,
+        limit: int = 10,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        """List scan records for a user."""
+        with self._get_session() as session:
+            scans = (
+                session.query(Scan)
+                .order_by(Scan.timestamp.desc())
+                .limit(limit)
+                .offset(offset)
+                .all()
+            )
+
+            return [
+                {
+                    "scan_id": s.id,
+                    "scan_type": s.scan_type,
+                    "status": s.status,
+                    "target_range": s.target_range,
+                    "port_range": s.port_range,
+                    "started_at": s.started_at.isoformat() if s.started_at else None,
+                    "completed_at": s.completed_at.isoformat() if s.completed_at else None,
+                    "progress": s.progress,
+                    "scanned_hosts": s.scanned_hosts,
+                    "total_hosts": s.total_hosts,
+                    "results_summary": s.results_summary,
+                    "timestamp": s.timestamp.isoformat() if s.timestamp else None,
+                }
+                for s in scans
+            ]
+
+    def delete_scan(self, user_id: str, scan_id: str) -> bool:
+        """Delete a scan record."""
+        with self._get_session() as session:
+            scan = session.query(Scan).filter(Scan.id == scan_id).first()
+
+            if scan:
+                session.delete(scan)
+                session.commit()
+                return True
+            return False
+
+    def count_scans(self, user_id: str) -> int:
+        """Get total count of scans for a user."""
+        with self._get_session() as session:
+            return session.query(Scan).count()
+
     # ==================== Leaderboard ====================
 
     def get_leaderboard(self, scenario_id: str, limit: int = 10) -> list[dict[str, Any]]:
@@ -191,6 +318,8 @@ class LocalDataStore(DataStore):
             session.query(Progress).filter(Progress.user_id == user_id).delete()
             # Delete preferences
             session.query(Preference).filter(Preference.user_id == user_id).delete()
+            # Delete scans (all scans in single-user mode)
+            session.query(Scan).delete()
             session.commit()
 
     def export_user_data(self, user_id: str) -> dict[str, Any]:
@@ -199,5 +328,6 @@ class LocalDataStore(DataStore):
             "user_id": user_id,
             "progress": self.get_all_progress(user_id),
             "preferences": self.get_all_preferences(user_id),
+            "scans": self.list_scans(user_id, limit=1000),
             "exported_at": datetime.utcnow().isoformat(),
         }

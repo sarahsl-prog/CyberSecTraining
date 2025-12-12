@@ -70,6 +70,15 @@ export function NetworkScan() {
   const { data: scanHistory, isLoading: historyLoading, refetch: refetchHistory } =
     useScanHistory({ page_size: 10 });
 
+  // Load default scan type from localStorage on mount
+  useEffect(() => {
+    const savedScanType = localStorage.getItem('cybersec-default-scan-type');
+    if (savedScanType && (savedScanType === 'quick' || savedScanType === 'deep' || savedScanType === 'discovery')) {
+      setScanType(savedScanType as ScanType);
+      log.info('Loaded default scan type from settings', { scanType: savedScanType });
+    }
+  }, []);
+
   // Auto-populate target from detected network
   useEffect(() => {
     if (detectedNetwork?.network && !target) {

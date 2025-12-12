@@ -7,6 +7,7 @@ It serves as the main entry point for the API layer to interact with scanning.
 """
 
 import asyncio
+import json
 from datetime import datetime, timedelta
 from typing import Optional, Union
 import uuid
@@ -58,6 +59,7 @@ class ScanOrchestrator:
         self._current_scan: Optional[str] = None
         self._last_scan_time: Optional[datetime] = None
         self._scan_lock = asyncio.Lock()
+        self._datastore = get_datastore()
 
         logger.info("ScanOrchestrator initialized")
 
@@ -192,6 +194,22 @@ class ScanOrchestrator:
             self._scan_history[scan_id] = result
             self._current_scan = scan_id
 
+            # Save initial scan to database
+            self._datastore.save_scan(
+                user_id="local",
+                scan_id=scan_id,
+                scan_type=scan_type.value,
+                status=ScanStatus.PENDING.value,
+                target_range=target,
+                port_range=port_range,
+                started_at=None,
+                completed_at=None,
+                progress=0.0,
+                scanned_hosts=0,
+                total_hosts=0,
+                results_summary=None,
+            )
+
             # Start scan in background task
             asyncio.create_task(self._run_scan_background(scan_id, target, scan_type, port_range))
 
@@ -223,6 +241,22 @@ class ScanOrchestrator:
             if scan_id in self._scan_history:
                 self._scan_history[scan_id] = result
 
+            # Save completed scan to database
+            self._datastore.save_scan(
+                user_id="local",
+                scan_id=scan_id,
+                scan_type=result.scan_type.value,
+                status=result.status.value,
+                target_range=result.target_range,
+                port_range=port_range,
+                started_at=result.started_at,
+                completed_at=result.completed_at,
+                progress=result.progress,
+                scanned_hosts=result.scanned_hosts,
+                total_hosts=result.total_hosts,
+                results_summary=json.dumps(result.to_dict()),
+            )
+
             # Mark as complete
             self._current_scan = None
             self._last_scan_time = datetime.utcnow()
@@ -237,6 +271,26 @@ class ScanOrchestrator:
                 self._scan_history[scan_id].status = ScanStatus.FAILED
                 self._scan_history[scan_id].error_message = f"Scan error: {str(e)}"
                 self._scan_history[scan_id].completed_at = datetime.utcnow()
+
+                # Save failed scan to database
+                self._datastore.save_scan(
+                    user_id="local",
+                    scan_id=scan_id,
+                    scan_type=self._scan_history[scan_id].scan_type.value,
+                    status=ScanStatus.FAILED.value,
+                    target_range=self._scan_history[scan_id].target_range,
+                    port_range=port_range,
+                    started_at=self._scan_history[scan_id].started_at,
+                    completed_at=self._scan_history[scan_id].completed_at,
+                    progress=self._scan_history[scan_id].progress,
+                    scanned_hosts=self._scan_history[scan_id].scanned_hosts,
+                    total_hosts=self._scan_history[scan_id].total_hosts,
+                    results_summary=json.dumps({
+                        "error": str(e),
+                        "scan_id": scan_id,
+                        "status": "failed",
+                    }),
+                )
 
             self._current_scan = None
 
@@ -269,6 +323,55 @@ class ScanOrchestrator:
                     f"This prevents excessive network traffic."
                 )
 
+    def _scan_dict_to_result(self, scan_dict: dict) -> ScanResult:
+        """
+        Convert a scan dictionary from the database to a ScanResult object.
+
+        Args:
+            scan_dict: Scan data from database
+
+        Returns:
+            ScanResult object
+        """
+        # Parse results_summary if available
+        devices = []
+        if scan_dict.get("results_summary"):
+            try:
+                summary = json.loads(scan_dict["results_summary"])
+                devices_data = summary.get("devices", [])
+                for dev_data in devices_data:
+                    devices.append(DeviceInfo(**dev_data))
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+        # Parse datetime strings
+        started_at = None
+        completed_at = None
+        if scan_dict.get("started_at"):
+            if isinstance(scan_dict["started_at"], str):
+                started_at = datetime.fromisoformat(scan_dict["started_at"])
+            else:
+                started_at = scan_dict["started_at"]
+
+        if scan_dict.get("completed_at"):
+            if isinstance(scan_dict["completed_at"], str):
+                completed_at = datetime.fromisoformat(scan_dict["completed_at"])
+            else:
+                completed_at = scan_dict["completed_at"]
+
+        return ScanResult(
+            scan_id=scan_dict["scan_id"],
+            target_range=scan_dict.get("target_range", ""),
+            scan_type=ScanType(scan_dict["scan_type"]),
+            status=ScanStatus(scan_dict["status"]),
+            devices=devices,
+            started_at=started_at,
+            completed_at=completed_at,
+            progress=scan_dict.get("progress", 0.0),
+            scanned_hosts=scan_dict.get("scanned_hosts", 0),
+            total_hosts=scan_dict.get("total_hosts", 0),
+        )
+
     async def get_scan_status(self, scan_id: str) -> Optional[ScanResult]:
         """
         Get the status and results of a scan.
@@ -285,8 +388,16 @@ class ScanOrchestrator:
             if result:
                 return result
 
-        # Check history (used by both scanner types)
-        return self._scan_history.get(scan_id)
+        # Check in-memory history
+        if scan_id in self._scan_history:
+            return self._scan_history[scan_id]
+
+        # Check database
+        scan_dict = self._datastore.get_scan("local", scan_id)
+        if scan_dict:
+            return self._scan_dict_to_result(scan_dict)
+
+        return None
 
     async def cancel_scan(self, scan_id: str) -> bool:
         """
@@ -315,7 +426,7 @@ class ScanOrchestrator:
         offset: int = 0,
     ) -> list[ScanResult]:
         """
-        Get scan history.
+        Get scan history from database.
 
         Args:
             limit: Maximum number of results
@@ -324,20 +435,18 @@ class ScanOrchestrator:
         Returns:
             List of ScanResult objects, most recent first
         """
-        # Combine with nmap scanner's active scans (only NmapScanner has get_all_scans)
-        all_scans = dict(self._scan_history)
-        if self._nmap_scanner:
-            for scan in self._nmap_scanner.get_all_scans():
-                all_scans[scan.scan_id] = scan
+        # Load scans from database
+        scan_dicts = self._datastore.list_scans("local", limit=limit, offset=offset)
 
-        # Sort by start time (most recent first)
-        sorted_scans = sorted(
-            all_scans.values(),
-            key=lambda s: s.started_at or datetime.min,
-            reverse=True,
-        )
+        # Convert to ScanResult objects
+        results = []
+        for scan_dict in scan_dicts:
+            try:
+                results.append(self._scan_dict_to_result(scan_dict))
+            except Exception as e:
+                logger.warning(f"Failed to convert scan {scan_dict.get('scan_id')}: {e}")
 
-        return sorted_scans[offset : offset + limit]
+        return results
 
     def get_network_interfaces(self) -> list[dict]:
         """
