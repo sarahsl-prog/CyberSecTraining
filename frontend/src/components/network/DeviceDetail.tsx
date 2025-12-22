@@ -12,6 +12,8 @@ import { useVulnerabilities } from '@/hooks';
 import { logger } from '@/services/logger';
 import styles from './DeviceDetail.module.css';
 
+const log = logger.create('DeviceDetail');
+
 /**
  * Props for DeviceDetail component.
  */
@@ -100,7 +102,7 @@ export function DeviceDetail({
 
   // Log when device detail is opened
   if (isOpen && device) {
-    logger.debug('DeviceDetail opened', { deviceId: device.id, ip: device.ip });
+    log.debug('DeviceDetail opened', { deviceId: device.id, ip: device.ip });
   }
 
   if (!device) {

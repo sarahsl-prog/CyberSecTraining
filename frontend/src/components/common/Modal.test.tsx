@@ -16,9 +16,13 @@ describe('Modal', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock dialog methods
-    HTMLDialogElement.prototype.showModal = vi.fn();
-    HTMLDialogElement.prototype.close = vi.fn();
+    // Mock dialog methods - jsdom doesn't fully support native dialog
+    HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
+      this.setAttribute('open', '');
+    });
+    HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+      this.removeAttribute('open');
+    });
   });
 
   it('renders modal when open', () => {
@@ -73,13 +77,14 @@ describe('Modal', () => {
 
   it('applies size class correctly', () => {
     const { rerender } = render(<Modal {...defaultProps} size="sm" />);
-    expect(screen.getByRole('dialog')).toHaveClass('size-sm');
+    // CSS modules add hash to class names, check for partial match
+    expect(screen.getByRole('dialog').className).toMatch(/size-sm/);
 
     rerender(<Modal {...defaultProps} size="lg" />);
-    expect(screen.getByRole('dialog')).toHaveClass('size-lg');
+    expect(screen.getByRole('dialog').className).toMatch(/size-lg/);
 
     rerender(<Modal {...defaultProps} size="xl" />);
-    expect(screen.getByRole('dialog')).toHaveClass('size-xl');
+    expect(screen.getByRole('dialog').className).toMatch(/size-xl/);
   });
 
   it('applies custom className', () => {

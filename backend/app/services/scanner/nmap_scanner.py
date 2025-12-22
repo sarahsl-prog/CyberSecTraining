@@ -125,6 +125,7 @@ class NmapScanner(BaseScannerInterface):
         target: str,
         scan_type: ScanType = ScanType.QUICK,
         port_range: Optional[str] = None,
+        scan_id: Optional[str] = None,
     ) -> ScanResult:
         """
         Perform a network scan on the specified target.
@@ -136,6 +137,7 @@ class NmapScanner(BaseScannerInterface):
             target: IP address or network range (e.g., "192.168.1.0/24")
             scan_type: Type of scan to perform (QUICK, DEEP, DISCOVERY, CUSTOM)
             port_range: Optional custom port range
+            scan_id: Optional scan ID (will be generated if not provided)
 
         Returns:
             ScanResult with discovered devices and scan metadata
@@ -145,6 +147,7 @@ class NmapScanner(BaseScannerInterface):
         """
         # Create scan result object
         result = ScanResult(
+            scan_id=scan_id or str(__import__('uuid').uuid4()),
             target_range=target,
             scan_type=scan_type,
             status=ScanStatus.PENDING,

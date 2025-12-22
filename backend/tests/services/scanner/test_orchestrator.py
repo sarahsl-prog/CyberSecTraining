@@ -6,6 +6,7 @@ These tests verify that:
 - Rate limiting is enforced
 - Scan history is maintained
 - Network validation is performed
+- Mode routing (training vs live) works correctly
 """
 
 import pytest
@@ -15,6 +16,8 @@ from datetime import datetime, timedelta
 from app.services.scanner.orchestrator import ScanOrchestrator, get_scan_orchestrator
 from app.services.scanner.base import ScanType, ScanStatus, ScanResult
 from app.services.scanner.network_validator import NetworkValidationError
+from app.services.scanner.fake_network_generator import FakeNetworkGenerator
+from app.services.scanner.nmap_scanner import NmapScanner
 
 
 class TestScanOrchestrator:
@@ -109,10 +112,11 @@ class TestScanOrchestrator:
     @pytest.mark.asyncio
     async def test_scan_history(self):
         """Test that completed scans are stored in history."""
-        # Patch scanner
+        # Patch scanner and settings
         with patch.object(
             self.orchestrator, "_get_scanner"
-        ) as mock_get_scanner:
+        ) as mock_get_scanner, patch("app.services.scanner.orchestrator.settings") as mock_settings:
+            mock_settings.enable_real_scanning = True
             mock_result = ScanResult(
                 scan_id="test-123",
                 status=ScanStatus.COMPLETED,
@@ -134,12 +138,18 @@ class TestScanOrchestrator:
     @pytest.mark.asyncio
     async def test_get_scan_history(self):
         """Test getting scan history."""
-        # Add some scans to history
+        # Add some scans to datastore (scans are now loaded from database)
         for i in range(5):
-            self.orchestrator._scan_history[f"scan-{i}"] = ScanResult(
+            scan_time = datetime.utcnow() - timedelta(minutes=i)
+            self.orchestrator._datastore.save_scan(
+                user_id="local",
                 scan_id=f"scan-{i}",
-                status=ScanStatus.COMPLETED,
-                started_at=datetime.utcnow() - timedelta(minutes=i),
+                scan_type="quick",
+                status="completed",
+                target_range="192.168.1.0/24",
+                started_at=scan_time,
+                completed_at=scan_time,
+                progress=100.0,
             )
 
         # Get history with limit
@@ -215,6 +225,118 @@ class TestScanOrchestrator:
         """Test validating an invalid target."""
         with pytest.raises(NetworkValidationError):
             self.orchestrator.validate_target("8.8.8.8")
+
+    # =========================================================================
+    # Mode Routing Tests
+    # =========================================================================
+
+    def test_get_application_mode_defaults_to_training(self):
+        """Test that application mode defaults to training if not set."""
+        # Mock datastore to return no preference
+        with patch("app.services.scanner.orchestrator.get_datastore") as mock_get_datastore:
+            mock_datastore = MagicMock()
+            mock_datastore.get_preference.return_value = None
+            mock_get_datastore.return_value = mock_datastore
+
+            mode = self.orchestrator._get_application_mode()
+            assert mode == "training"
+
+    def test_get_application_mode_returns_stored_mode(self):
+        """Test that application mode is read from datastore."""
+        # Mock datastore to return live mode
+        with patch("app.services.scanner.orchestrator.get_datastore") as mock_get_datastore:
+            mock_datastore = MagicMock()
+            mock_datastore.get_preference.return_value = '{"mode": "live", "require_confirmation_for_live": true}'
+            mock_get_datastore.return_value = mock_datastore
+
+            mode = self.orchestrator._get_application_mode()
+            assert mode == "live"
+
+    def test_get_scanner_returns_fake_in_training_mode(self):
+        """Test that _get_scanner returns FakeNetworkGenerator in training mode."""
+        # Mock mode to return training
+        with patch.object(self.orchestrator, "_get_application_mode", return_value="training"):
+            scanner = self.orchestrator._get_scanner()
+            assert isinstance(scanner, FakeNetworkGenerator)
+
+    def test_get_scanner_returns_nmap_in_live_mode(self):
+        """Test that _get_scanner returns NmapScanner in live mode."""
+        # Mock mode to return live
+        with patch.object(self.orchestrator, "_get_application_mode", return_value="live"):
+            scanner = self.orchestrator._get_scanner()
+            assert isinstance(scanner, NmapScanner)
+
+    def test_get_scanner_caches_fake_scanner(self):
+        """Test that FakeNetworkGenerator is cached across calls."""
+        with patch.object(self.orchestrator, "_get_application_mode", return_value="training"):
+            scanner1 = self.orchestrator._get_scanner()
+            scanner2 = self.orchestrator._get_scanner()
+            assert scanner1 is scanner2
+
+    def test_get_scanner_caches_nmap_scanner(self):
+        """Test that NmapScanner is cached across calls."""
+        with patch.object(self.orchestrator, "_get_application_mode", return_value="live"):
+            scanner1 = self.orchestrator._get_scanner()
+            scanner2 = self.orchestrator._get_scanner()
+            assert scanner1 is scanner2
+
+    @pytest.mark.asyncio
+    async def test_training_mode_scan_completes(self):
+        """Test that scans complete successfully in training mode."""
+        # Mock mode to return training
+        with patch.object(self.orchestrator, "_get_application_mode", return_value="training"):
+            # Set last scan time to past to avoid cooldown
+            self.orchestrator._last_scan_time = datetime.utcnow() - timedelta(hours=1)
+
+            # Start scan
+            result = await self.orchestrator.start_scan(
+                target="192.168.1.0/24",
+                scan_type=ScanType.QUICK,
+                user_consent=True,
+            )
+
+            # Should return a pending result immediately
+            assert result.status == ScanStatus.PENDING
+            assert result.target_range == "192.168.1.0/24"
+
+    @pytest.mark.asyncio
+    async def test_live_mode_requires_enable_real_scanning(self):
+        """Test that live mode requires enable_real_scanning to be True."""
+        # Mock mode to return live and disable real scanning
+        with patch.object(
+            self.orchestrator, "_get_application_mode", return_value="live"
+        ), patch("app.services.scanner.orchestrator.settings") as mock_settings:
+            mock_settings.enable_real_scanning = False
+            mock_settings.scan_cooldown = 5  # Add scan_cooldown to mock
+            self.orchestrator._last_scan_time = datetime.utcnow() - timedelta(hours=1)
+
+            # Should raise error
+            with pytest.raises(RuntimeError) as exc_info:
+                await self.orchestrator.start_scan(
+                    target="192.168.1.0/24",
+                    user_consent=True,
+                )
+
+            assert "switch to training mode" in str(exc_info.value).lower()
+
+    @pytest.mark.asyncio
+    async def test_training_mode_bypasses_enable_real_scanning_check(self):
+        """Test that training mode doesn't require enable_real_scanning."""
+        # Mock mode to return training and disable real scanning
+        with patch.object(
+            self.orchestrator, "_get_application_mode", return_value="training"
+        ), patch("app.services.scanner.orchestrator.settings") as mock_settings:
+            mock_settings.enable_real_scanning = False
+            mock_settings.scan_cooldown = 5  # Add scan_cooldown to mock
+            self.orchestrator._last_scan_time = datetime.utcnow() - timedelta(hours=1)
+
+            # Should succeed in training mode
+            result = await self.orchestrator.start_scan(
+                target="192.168.1.0/24",
+                user_consent=True,
+            )
+
+            assert result.status == ScanStatus.PENDING
 
 
 class TestGetScanOrchestrator:

@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AccessibilityProvider } from '@/context/AccessibilityContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { ModeProvider } from '@/context/ModeContext';
 import '@/styles/global.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -11,7 +12,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <AccessibilityProvider>
         <ThemeProvider>
-          <App />
+          <ModeProvider>
+            <App />
+          </ModeProvider>
         </ThemeProvider>
       </AccessibilityProvider>
     </BrowserRouter>

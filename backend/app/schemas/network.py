@@ -7,7 +7,7 @@ scanning endpoints. They provide automatic validation and documentation.
 
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.services.scanner.base import ScanType, ScanStatus
 
@@ -22,8 +22,8 @@ class PortResponse(BaseModel):
     version: Optional[str] = Field(None, description="Service version")
     banner: Optional[str] = Field(None, description="Service banner")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "port": 22,
                 "protocol": "tcp",
@@ -33,6 +33,7 @@ class PortResponse(BaseModel):
                 "banner": None,
             }
         }
+    )
 
 
 class DeviceResponse(BaseModel):
@@ -49,8 +50,8 @@ class DeviceResponse(BaseModel):
     last_seen: datetime = Field(default_factory=datetime.utcnow, description="Last detection time")
     is_up: bool = Field(default=True, description="Whether device is responding")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "ip": "192.168.1.1",
                 "mac": "00:1A:2B:3C:4D:5E",
@@ -67,6 +68,7 @@ class DeviceResponse(BaseModel):
                 "is_up": True,
             }
         }
+    )
 
 
 class ScanRequest(BaseModel):
@@ -119,8 +121,8 @@ class ScanRequest(BaseModel):
             )
         return v
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "target": "192.168.1.0/24",
                 "scan_type": "quick",
@@ -128,6 +130,7 @@ class ScanRequest(BaseModel):
                 "user_consent": True,
             }
         }
+    )
 
 
 class ScanResponse(BaseModel):
@@ -149,8 +152,8 @@ class ScanResponse(BaseModel):
     total_hosts: int = Field(default=0, description="Total hosts to scan")
     device_count: int = Field(default=0, description="Number of devices found")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "scan_id": "550e8400-e29b-41d4-a716-446655440000",
                 "target_range": "192.168.1.0/24",
@@ -166,6 +169,7 @@ class ScanResponse(BaseModel):
                 "device_count": 5,
             }
         }
+    )
 
 
 class ScanStatusResponse(BaseModel):
@@ -178,6 +182,28 @@ class ScanStatusResponse(BaseModel):
     error_message: Optional[str] = Field(None, description="Error if failed")
 
 
+class PaginatedScanResponse(BaseModel):
+    """Paginated response for scan history."""
+
+    items: list[ScanResponse] = Field(default_factory=list, description="Scan items")
+    total: int = Field(..., description="Total number of scans")
+    page: int = Field(..., description="Current page number (1-indexed)")
+    page_size: int = Field(..., description="Number of items per page")
+    pages: int = Field(..., description="Total number of pages")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "items": [],
+                "total": 0,
+                "page": 1,
+                "page_size": 10,
+                "pages": 0,
+            }
+        }
+    )
+
+
 class NetworkInterfaceResponse(BaseModel):
     """Response model for network interface information."""
 
@@ -187,8 +213,8 @@ class NetworkInterfaceResponse(BaseModel):
     network: str = Field(..., description="Network range in CIDR notation")
     is_private: bool = Field(..., description="Whether this is a private network")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "name": "eth0",
                 "ip": "192.168.1.100",
@@ -197,6 +223,7 @@ class NetworkInterfaceResponse(BaseModel):
                 "is_private": True,
             }
         }
+    )
 
 
 class NetworkValidationRequest(BaseModel):
@@ -218,8 +245,8 @@ class NetworkValidationResponse(BaseModel):
     type: str = Field(default="unknown", description="Type: 'single_ip' or 'network'")
     error: Optional[str] = Field(None, description="Validation error message")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "valid": True,
                 "target": "192.168.1.0/24",
@@ -229,3 +256,4 @@ class NetworkValidationResponse(BaseModel):
                 "error": None,
             }
         }
+    )

@@ -52,12 +52,32 @@ class Device(Base, IdMixin, TimestampMixin):
     # Open ports stored as JSON
     open_ports_json = Column(Text, nullable=True)
 
+    # Vulnerability count (denormalized for performance)
+    vulnerability_count = Column(Integer, default=0, nullable=True)
+
     # Relationships
     vulnerabilities = relationship(
         "Vulnerability",
         back_populates="device",
         cascade="all, delete-orphan",
     )
+
+    @property
+    def open_ports(self):
+        """Get open ports as a list."""
+        import json
+        if self.open_ports_json:
+            return json.loads(self.open_ports_json)
+        return []
+
+    @open_ports.setter
+    def open_ports(self, value):
+        """Set open ports from a list."""
+        import json
+        if value:
+            self.open_ports_json = json.dumps(value)
+        else:
+            self.open_ports_json = None
 
     def __repr__(self) -> str:
         return f"<Device(id={self.id}, ip={self.ip}, hostname={self.hostname})>"

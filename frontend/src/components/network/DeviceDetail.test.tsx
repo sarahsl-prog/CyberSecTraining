@@ -73,9 +73,13 @@ describe('DeviceDetail', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock dialog methods
-    HTMLDialogElement.prototype.showModal = vi.fn();
-    HTMLDialogElement.prototype.close = vi.fn();
+    // Mock dialog methods - jsdom doesn't fully support native dialog
+    HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
+      this.setAttribute('open', '');
+    });
+    HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+      this.removeAttribute('open');
+    });
 
     // Reset hook mock
     (useVulnerabilities as ReturnType<typeof vi.fn>).mockReturnValue({
@@ -233,7 +237,8 @@ describe('DeviceDetail', () => {
   it('calls onClose when close button is clicked', () => {
     render(<DeviceDetail {...defaultProps} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /close/i }));
+    // Click the Close button in the footer (not the modal's X button)
+    fireEvent.click(screen.getByRole('button', { name: /^Close$/i }));
 
     expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
   });

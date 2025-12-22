@@ -229,25 +229,30 @@ class TestListScansEndpoint:
             ScanResult(scan_id="scan-1", status=ScanStatus.COMPLETED),
             ScanResult(scan_id="scan-2", status=ScanStatus.COMPLETED),
         ])
+        mock_orch._datastore.count_scans.return_value = 2
         mock_get_orchestrator.return_value = mock_orch
 
         response = client.get("/api/v1/network/scans")
 
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 2
+        assert len(data["items"]) == 2
+        assert data["total"] == 2
+        assert data["page"] == 1
+        assert data["pages"] == 1
 
     @patch("app.api.routes.network.get_scan_orchestrator")
     def test_list_scans_pagination(self, mock_get_orchestrator, client):
         """Test scan listing with pagination."""
         mock_orch = MagicMock()
         mock_orch.get_scan_history = AsyncMock(return_value=[])
+        mock_orch._datastore.count_scans.return_value = 0
         mock_get_orchestrator.return_value = mock_orch
 
-        response = client.get("/api/v1/network/scans?limit=5&offset=10")
+        response = client.get("/api/v1/network/scans?page=2&page_size=5")
 
         assert response.status_code == 200
-        mock_orch.get_scan_history.assert_called_with(limit=5, offset=10)
+        mock_orch.get_scan_history.assert_called_with(limit=5, offset=5)
 
 
 class TestInterfacesEndpoint:

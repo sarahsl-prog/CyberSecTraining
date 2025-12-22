@@ -14,6 +14,17 @@ import type {
   LLMHealthStatus,
 } from '@/types';
 
+const log = logger.create('LLMService');
+
+/**
+ * Get the "use local AI" preference from localStorage.
+ */
+function getPreferLocalAI(): boolean {
+  const saved = localStorage.getItem('cybersec-use-local-ai');
+  // Default to true if not set
+  return saved === null || saved === 'true';
+}
+
 /**
  * Get an explanation for a topic.
  *
@@ -25,14 +36,15 @@ export async function getExplanation(
   request: ExplanationRequest,
   skipCache = false
 ): Promise<ExplanationResponse> {
-  logger.debug('Requesting explanation', { topic: request.topic, type: request.explanation_type });
+  log.debug('Requesting explanation', { topic: request.topic, type: request.explanation_type });
 
+  const preferLocal = getPreferLocalAI();
   const response = await apiClient.post<ExplanationResponse>(
-    `/llm/explain?skip_cache=${skipCache}`,
+    `/llm/explain?skip_cache=${skipCache}&prefer_local=${preferLocal}`,
     request
   );
 
-  logger.info('Explanation received', {
+  log.info('Explanation received', {
     topic: response.topic,
     provider: response.provider,
     cached: response.cached,
@@ -54,9 +66,10 @@ export async function explainVulnerability(
   difficulty: DifficultyLevel = 'beginner',
   context?: string
 ): Promise<ExplanationResponse> {
-  logger.debug('Requesting vulnerability explanation', { vulnType, difficulty });
+  log.debug('Requesting vulnerability explanation', { vulnType, difficulty });
 
-  const params = new URLSearchParams({ difficulty });
+  const preferLocal = getPreferLocalAI();
+  const params = new URLSearchParams({ difficulty, prefer_local: String(preferLocal) });
   if (context) {
     params.append('context', context);
   }
@@ -79,9 +92,10 @@ export async function explainRemediation(
   difficulty: DifficultyLevel = 'beginner',
   context?: string
 ): Promise<ExplanationResponse> {
-  logger.debug('Requesting remediation explanation', { vulnType, difficulty });
+  log.debug('Requesting remediation explanation', { vulnType, difficulty });
 
-  const params = new URLSearchParams({ difficulty });
+  const preferLocal = getPreferLocalAI();
+  const params = new URLSearchParams({ difficulty, prefer_local: String(preferLocal) });
   if (context) {
     params.append('context', context);
   }
@@ -102,9 +116,10 @@ export async function explainConcept(
   concept: string,
   difficulty: DifficultyLevel = 'beginner'
 ): Promise<ExplanationResponse> {
-  logger.debug('Requesting concept explanation', { concept, difficulty });
+  log.debug('Requesting concept explanation', { concept, difficulty });
 
-  const params = new URLSearchParams({ difficulty });
+  const preferLocal = getPreferLocalAI();
+  const params = new URLSearchParams({ difficulty, prefer_local: String(preferLocal) });
 
   return apiClient.get<ExplanationResponse>(
     `/llm/explain/concept/${encodeURIComponent(concept)}?${params}`
@@ -144,7 +159,7 @@ export async function clearCache(): Promise<{
   message: string;
   entries_cleared: number;
 }> {
-  logger.info('Clearing LLM cache');
+  log.info('Clearing LLM cache');
   return apiClient.post('/llm/cache/clear', {});
 }
 

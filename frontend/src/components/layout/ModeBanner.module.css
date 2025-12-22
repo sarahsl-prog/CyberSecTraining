@@ -1,0 +1,171 @@
+/**
+ * ModeBanner component styles.
+ *
+ * Provides visual styling for training vs live modes with
+ * accessibility compliance and responsive design.
+ */
+
+.banner {
+  /* Layout */
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 16px;
+
+  /* Position */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  /* Display */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Transitions */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.icon {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.description {
+  font-size: 14px;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
+/* Training Mode - Blue/Teal */
+.training {
+  background-color: #0891b2; /* cyan-600 */
+  color: #ffffff;
+}
+
+.training .title {
+  color: #ffffff;
+}
+
+.training .description {
+  color: #e0f2fe; /* cyan-100 */
+}
+
+/* Live Mode - Orange/Red */
+.live {
+  background-color: #ea580c; /* orange-600 */
+  color: #ffffff;
+}
+
+.live .title {
+  color: #ffffff;
+}
+
+.live .description {
+  color: #fed7aa; /* orange-200 */
+}
+
+/* High Contrast Mode */
+[data-color-mode='high-contrast'] .training {
+  background-color: #0369a1; /* cyan-700 */
+  border-bottom: 2px solid #ffffff;
+}
+
+[data-color-mode='high-contrast'] .live {
+  background-color: #c2410c; /* orange-700 */
+  border-bottom: 2px solid #ffffff;
+}
+
+/* Dark Mode Adjustments */
+[data-color-mode='dark'] .training {
+  background-color: #0e7490; /* cyan-700 */
+}
+
+[data-color-mode='dark'] .live {
+  background-color: #c2410c; /* orange-700 */
+}
+
+/* Colorblind Modes */
+[data-color-mode='protanopia'] .training,
+[data-color-mode='deuteranopia'] .training {
+  background-color: #0284c7; /* sky-600 - distinguishable blue */
+}
+
+[data-color-mode='protanopia'] .live,
+[data-color-mode='deuteranopia'] .live {
+  background-color: #dc2626; /* red-600 - distinguishable red */
+}
+
+[data-color-mode='tritanopia'] .training {
+  background-color: #0891b2; /* cyan-600 - distinguishable for tritanopia */
+}
+
+[data-color-mode='tritanopia'] .live {
+  background-color: #dc2626; /* red-600 - distinguishable for tritanopia */
+}
+
+/* Reduced Motion */
+.reduce-motion .banner {
+  transition: none;
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .banner {
+    padding: 8px 12px;
+  }
+
+  .content {
+    gap: 8px;
+  }
+
+  .icon {
+    font-size: 20px;
+  }
+
+  .title {
+    font-size: 14px;
+  }
+
+  .description {
+    font-size: 12px;
+  }
+}
+
+/* Print - Hide banner in print mode */
+@media print {
+  .banner {
+    display: none;
+  }
+}
+
+/* Focus Styles for Interactive Elements */
+.banner:focus-within {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}
+
+/* Ensure sufficient contrast ratios (WCAG AA) */
+/* Training mode: 4.5:1 minimum for text */
+/* Live mode: 4.5:1 minimum for text */
+/* Icons and non-text: 3:1 minimum */

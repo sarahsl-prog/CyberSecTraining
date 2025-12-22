@@ -23,6 +23,7 @@ from app.schemas.network import (
     NetworkInterfaceResponse,
     NetworkValidationRequest,
     NetworkValidationResponse,
+    PaginatedScanResponse,
 )
 from app.services.scanner.orchestrator import get_scan_orchestrator
 from app.services.scanner.network_validator import NetworkValidationError
@@ -276,26 +277,42 @@ async def cancel_scan(scan_id: str) -> dict:
     return {"message": "Scan cancelled", "scan_id": scan_id}
 
 
-@router.get("/scans", response_model=list[ScanResponse])
+@router.get("/scans", response_model=PaginatedScanResponse)
 async def list_scans(
-    limit: int = Query(default=10, ge=1, le=100),
-    offset: int = Query(default=0, ge=0),
-) -> list[ScanResponse]:
+    page: int = Query(default=1, ge=1, description="Page number (1-indexed)"),
+    page_size: int = Query(default=10, ge=1, le=100, description="Items per page"),
+) -> PaginatedScanResponse:
     """
-    List scan history.
+    List scan history with pagination.
 
     Returns paginated list of past scans, most recent first.
 
     Args:
-        limit: Maximum number of scans to return
-        offset: Number of scans to skip
+        page: Page number (1-indexed)
+        page_size: Number of items per page
 
     Returns:
-        List of ScanResponse objects
+        PaginatedScanResponse with scan history
     """
     orchestrator = get_scan_orchestrator()
-    scans = await orchestrator.get_scan_history(limit=limit, offset=offset)
-    return [_scan_result_to_response(s) for s in scans]
+
+    # Calculate offset from page number
+    offset = (page - 1) * page_size
+
+    # Get scans and total count
+    scans = await orchestrator.get_scan_history(limit=page_size, offset=offset)
+    total = orchestrator._datastore.count_scans("local")
+
+    # Calculate total pages
+    pages = (total + page_size - 1) // page_size if total > 0 else 0
+
+    return PaginatedScanResponse(
+        items=[_scan_result_to_response(s) for s in scans],
+        total=total,
+        page=page,
+        page_size=page_size,
+        pages=pages,
+    )
 
 
 @router.get("/interfaces", response_model=list[NetworkInterfaceResponse])
