@@ -15,6 +15,7 @@ from app.services.packs.models import (
     PackManifest,
     VulnerabilityDefinition,
     RemediationGuide,
+    Scenario,
     ContentPack,
 )
 from app.services.packs.validator import PackValidator, PackValidationError
@@ -137,10 +138,14 @@ class PackLoader:
         # Load remediation guides
         pack.remediation_guides = self._load_remediation_guides(pack_path)
 
+        # Load scenarios
+        pack.scenarios = self._load_scenarios(pack_path)
+
         logger.info(
             f"Pack loaded: {pack_id} - "
             f"{len(pack.vulnerabilities)} vulnerabilities, "
-            f"{len(pack.remediation_guides)} remediation guides"
+            f"{len(pack.remediation_guides)} remediation guides, "
+            f"{len(pack.scenarios)} scenarios"
         )
 
         return pack
@@ -293,6 +298,42 @@ class PackLoader:
                 vuln = pack.get_vulnerability(vuln_id)
                 if vuln:
                     return vuln
+            except PackLoadError:
+                continue
+
+        return None
+
+    def get_scenario(
+        self,
+        scenario_id: str,
+        pack_id: Optional[str] = None,
+    ) -> Optional[Scenario]:
+        """
+        Get a scenario by ID.
+
+        If pack_id is not specified, searches all packs.
+
+        Args:
+            scenario_id: Scenario identifier
+            pack_id: Optional specific pack to search
+
+        Returns:
+            Scenario or None if not found
+        """
+        if pack_id:
+            try:
+                pack = self.load_pack(pack_id)
+                return pack.get_scenario(scenario_id)
+            except PackLoadError:
+                return None
+
+        # Search all packs
+        for pid in self.discover_packs():
+            try:
+                pack = self.load_pack(pid)
+                scenario = pack.get_scenario(scenario_id)
+                if scenario:
+                    return scenario
             except PackLoadError:
                 continue
 

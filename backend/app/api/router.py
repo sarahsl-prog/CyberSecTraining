@@ -19,5 +19,5 @@ api_router.include_router(devices.router)  # Already has prefix="/devices"
 api_router.include_router(vulnerabilities.router)  # Already has prefix="/vulnerabilities"
 api_router.include_router(llm.router)  # Already has prefix="/llm"
 
-# Future route modules (to be implemented):
-# api_router.include_router(scenarios.router, prefix="/scenarios", tags=["Scenarios"])
+# Include scenarios router
+api_router.include_router(scenarios.router, prefix="/scenarios", tags=["Scenarios"])
