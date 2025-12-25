@@ -18,23 +18,27 @@ describe('scenarioService', () => {
     vi.clearAllMocks();
   });
 
-  describe('getScenarios', () => {
+  describe('listScenarios', () => {
     it('should fetch scenarios successfully', async () => {
       const mockScenarios = [
         {
           id: 'test-scenario',
-          title: 'Test Scenario',
+          pack_id: 'core',
+          name: 'Test Scenario',
           description: 'A test scenario',
           difficulty: 'beginner',
+          device_count: 5,
+          vulnerability_count: 3,
           estimated_time: 15,
           tags: ['test'],
+          is_completed: false,
         },
       ];
 
       const mockResponse = { success: true, data: mockScenarios };
       (apiClient.get as any).mockResolvedValue(mockResponse);
 
-      const result = await scenarioService.getScenarios();
+      const result = await scenarioService.listScenarios();
 
       expect(apiClient.get).toHaveBeenCalledWith('/scenarios');
       expect(result).toEqual(mockResponse);
@@ -44,7 +48,7 @@ describe('scenarioService', () => {
       const mockError = { success: false, error: { message: 'API Error' } };
       (apiClient.get as any).mockResolvedValue(mockError);
 
-      const result = await scenarioService.getScenarios();
+      const result = await scenarioService.listScenarios();
 
       expect(result.success).toBe(false);
       expect(result.error.message).toBe('API Error');
@@ -55,11 +59,19 @@ describe('scenarioService', () => {
     it('should fetch a single scenario successfully', async () => {
       const mockScenario = {
         id: 'test-scenario',
-        title: 'Test Scenario',
+        pack_id: 'core',
+        name: 'Test Scenario',
         description: 'A test scenario',
         difficulty: 'beginner',
-        estimated_time: 15,
-        steps: [],
+        learning_objectives: ['Objective 1'],
+        devices: [],
+        metadata: {
+          author: 'Test',
+          version: '1.0',
+          tags: [],
+          prerequisites: [],
+        },
+        success_criteria: {},
       };
 
       const mockResponse = { success: true, data: mockScenario };

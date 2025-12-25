@@ -14,7 +14,7 @@ from math import ceil
 
 from fastapi import APIRouter, HTTPException, Query, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, case
 
 from app.core.logging import get_logger
 from app.db.session import get_db
@@ -118,20 +118,19 @@ async def list_vulnerabilities(
     total = query.count()
 
     # Apply pagination and ordering (critical first)
-    severity_order = {
-        Severity.CRITICAL: 0,
-        Severity.HIGH: 1,
-        Severity.MEDIUM: 2,
-        Severity.LOW: 3,
-        Severity.INFO: 4,
-    }
-
     offset = (page - 1) * page_size
     vulnerabilities = (
         query
         .order_by(
-            # Sort by severity (using case statement)
-            func.case(severity_order, value=Vulnerability.severity),
+            # Sort by severity (critical first)
+            case(
+                (Vulnerability.severity == Severity.CRITICAL, 0),
+                (Vulnerability.severity == Severity.HIGH, 1),
+                (Vulnerability.severity == Severity.MEDIUM, 2),
+                (Vulnerability.severity == Severity.LOW, 3),
+                (Vulnerability.severity == Severity.INFO, 4),
+                else_=5
+            ),
             Vulnerability.discovered_at.desc(),
         )
         .offset(offset)
