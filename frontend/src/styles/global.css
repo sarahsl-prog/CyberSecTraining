@@ -1,4 +1,13 @@
 /* CSS Reset and Global Styles */
+
+/* Import theme files - MUST be at top before any CSS rules */
+@import './themes/light.css';
+@import './themes/dark.css';
+@import './themes/high-contrast.css';
+@import './themes/protanopia.css';
+@import './themes/deuteranopia.css';
+@import './themes/tritanopia.css';
+
 *,
 *::before,
 *::after {
@@ -120,11 +129,3 @@ h6 {
   --radius-lg: 0.5rem;
   --radius-full: 9999px;
 }
-
-/* Import theme files */
-@import './themes/light.css';
-@import './themes/dark.css';
-@import './themes/high-contrast.css';
-@import './themes/protanopia.css';
-@import './themes/deuteranopia.css';
-@import './themes/tritanopia.css';

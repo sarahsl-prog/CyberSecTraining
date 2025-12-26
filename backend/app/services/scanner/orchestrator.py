@@ -367,6 +367,7 @@ class ScanOrchestrator:
             devices=devices,
             started_at=started_at,
             completed_at=completed_at,
+            error_message=scan_dict.get("error_message"),
             progress=scan_dict.get("progress", 0.0),
             scanned_hosts=scan_dict.get("scanned_hosts", 0),
             total_hosts=scan_dict.get("total_hosts", 0),
