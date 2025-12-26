@@ -320,3 +320,91 @@ class TestNetworkTypes:
 
         # Should have a mix of device types
         assert len(device_types) >= 3
+
+
+class TestBaseScannerInterface:
+    """Tests for BaseScannerInterface implementation."""
+
+    @pytest.mark.asyncio
+    async def test_discover_hosts_returns_ips(self, generator):
+        """Test that discover_hosts returns list of IP addresses."""
+        target = "192.168.1.0/24"
+        ips = await generator.discover_hosts(target)
+
+        assert isinstance(ips, list)
+        assert len(ips) > 0
+
+        # All should be valid IPs in target range
+        for ip in ips:
+            assert ip.startswith("192.168.1.")
+
+    @pytest.mark.asyncio
+    async def test_discover_hosts_is_deterministic(self, generator):
+        """Test that discover_hosts returns same IPs for same target."""
+        target = "192.168.1.0/24"
+
+        ips1 = await generator.discover_hosts(target)
+        ips2 = await generator.discover_hosts(target)
+
+        assert sorted(ips1) == sorted(ips2)
+
+    @pytest.mark.asyncio
+    async def test_discover_hosts_is_fast(self, generator):
+        """Test that host discovery is faster than full scan."""
+        import time
+
+        target = "192.168.1.0/24"
+        start = time.time()
+        await generator.discover_hosts(target)
+        duration = time.time() - start
+
+        # Should complete in under 1 second
+        assert duration < 1.0
+
+    @pytest.mark.asyncio
+    async def test_discover_hosts_enterprise_network(self, generator):
+        """Test that enterprise networks return appropriate device count."""
+        target = "10.0.0.0/24"
+        ips = await generator.discover_hosts(target)
+
+        # Should have between 5-20 devices for enterprise
+        assert 4 <= len(ips) <= 20  # 4 accounts for ~10% down devices
+
+        # All IPs should be in 10.x range
+        for ip in ips:
+            assert ip.startswith("10.0.0.")
+
+    @pytest.mark.asyncio
+    async def test_get_scan_progress_returns_float(self, generator):
+        """Test that get_scan_progress returns progress percentage."""
+        progress = await generator.get_scan_progress("fake-scan-123")
+
+        assert isinstance(progress, float)
+        assert 0.0 <= progress <= 100.0
+
+    @pytest.mark.asyncio
+    async def test_get_scan_progress_always_complete(self, generator):
+        """Test that fake scans always report 100% progress."""
+        # Since fake scans complete immediately
+        progress = await generator.get_scan_progress("any-id")
+        assert progress == 100.0
+
+    @pytest.mark.asyncio
+    async def test_cancel_scan_returns_false(self, generator):
+        """Test that cancel_scan returns False (not cancellable)."""
+        result = await generator.cancel_scan("fake-scan-123")
+
+        assert isinstance(result, bool)
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_cancel_scan_any_id(self, generator):
+        """Test that cancel_scan returns False for any scan ID."""
+        # Fake scans can't be cancelled, regardless of ID
+        result1 = await generator.cancel_scan("scan-1")
+        result2 = await generator.cancel_scan("scan-2")
+        result3 = await generator.cancel_scan("nonexistent")
+
+        assert result1 is False
+        assert result2 is False
+        assert result3 is False

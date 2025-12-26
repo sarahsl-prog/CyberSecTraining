@@ -78,16 +78,16 @@ def _device_to_response(device: DeviceInfo) -> DeviceResponse:
         hostname=device.hostname,
         vendor=device.vendor,
         os=device.os,
-        os_accuracy=device.os_accuracy,
+        os_accuracy=device.os_accuracy if device.os_accuracy is not None else 0,
         device_type=device.device_type,
         open_ports=[
             PortResponse(
-                port=p.port,
-                protocol=p.protocol,
-                state=p.state,
-                service=p.service,
-                version=p.version,
-                banner=p.banner,
+                port=p.port if hasattr(p, 'port') else p.get('port'),
+                protocol=p.protocol if hasattr(p, 'protocol') else p.get('protocol', 'tcp'),
+                state=p.state if hasattr(p, 'state') else p.get('state', 'open'),
+                service=p.service if hasattr(p, 'service') else p.get('service'),
+                version=p.version if hasattr(p, 'version') else p.get('version'),
+                banner=p.banner if hasattr(p, 'banner') else p.get('banner'),
             )
             for p in device.open_ports
         ],

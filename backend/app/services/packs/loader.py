@@ -248,6 +248,40 @@ class PackLoader:
 
         return guides
 
+    def _load_scenarios(
+        self,
+        pack_path: Path,
+    ) -> dict[str, Scenario]:
+        """
+        Load scenarios from a pack.
+
+        Args:
+            pack_path: Path to pack directory
+
+        Returns:
+            Dictionary mapping scenario IDs to scenarios
+        """
+        scenarios_dir = pack_path / "scenarios"
+        scenarios = {}
+
+        if not scenarios_dir.exists():
+            logger.debug(f"No scenarios directory in {pack_path}")
+            return scenarios
+
+        for scenario_file in scenarios_dir.glob("*.json"):
+            try:
+                with open(scenario_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+
+                scenario = Scenario.from_dict(data)
+                scenarios[scenario.id] = scenario
+                logger.debug(f"Loaded scenario: {scenario.id}")
+
+            except (json.JSONDecodeError, KeyError) as e:
+                logger.warning(f"Failed to load {scenario_file}: {e}")
+
+        return scenarios
+
     def load_all_packs(self) -> list[ContentPack]:
         """
         Load all discovered packs.

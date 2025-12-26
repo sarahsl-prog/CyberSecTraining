@@ -417,3 +417,77 @@ class FakeNetworkGenerator:
         # Base delay + per-device delay
         delay = 0.5 + (device_count * 0.05)
         await asyncio.sleep(min(delay, 3.0))  # Cap at 3 seconds
+
+    async def discover_hosts(self, target: str) -> list[str]:
+        """
+        Perform host discovery without port scanning.
+
+        This is a fast operation that only checks which hosts respond to
+        ping or other discovery probes. For fake data, this generates a
+        list of IPs without full device information.
+
+        Args:
+            target: Network range to scan (e.g., "192.168.1.0/24")
+
+        Returns:
+            List of IP addresses that responded to probes
+        """
+        # Parse network and generate seed
+        network, hosts = self._parse_network(target)
+        seed = self._generate_seed(target)
+        rng = random.Random(seed)
+
+        # Determine number of devices (same logic as scan_network)
+        network_addr = str(network.network_address)
+        if network_addr.startswith('10.'):
+            min_devices, max_devices = 5, 20
+        elif network_addr.startswith('192.168.'):
+            min_devices, max_devices = 3, 15
+        else:
+            min_devices, max_devices = 4, 18
+
+        device_count = rng.randint(min_devices, max_devices)
+
+        # Select random host IPs
+        selected_ips = rng.sample(hosts, min(device_count, len(hosts)))
+
+        # Simulate some devices being down (10% chance)
+        up_ips = [str(ip) for ip in selected_ips if rng.random() > 0.1]
+
+        # Brief delay to simulate discovery
+        await asyncio.sleep(0.3)
+
+        return up_ips
+
+    async def get_scan_progress(self, scan_id: str) -> float:
+        """
+        Get the current progress of a running scan.
+
+        For fake scans, since they complete nearly instantly, this will
+        always return 100.0. This is acceptable for training mode.
+
+        Args:
+            scan_id: Unique identifier of the scan
+
+        Returns:
+            Progress percentage (0.0 to 100.0)
+        """
+        # Fake scans complete immediately, so always return 100%
+        return 100.0
+
+    async def cancel_scan(self, scan_id: str) -> bool:
+        """
+        Cancel a running scan.
+
+        For fake scans, cancellation is not supported since scans complete
+        immediately. This always returns False indicating the scan cannot
+        be cancelled (likely already complete).
+
+        Args:
+            scan_id: Unique identifier of the scan to cancel
+
+        Returns:
+            False (fake scans cannot be cancelled as they complete immediately)
+        """
+        # Fake scans complete immediately, cancellation not supported
+        return False

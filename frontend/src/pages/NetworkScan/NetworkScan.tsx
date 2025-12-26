@@ -85,8 +85,21 @@ export function NetworkScan() {
     const isEnabled = autoDetectEnabled === null || autoDetectEnabled === 'true';
 
     if (isEnabled && detectedNetwork?.network && !target) {
-      setTarget(detectedNetwork.network);
-      log.info('Auto-detected network', { network: detectedNetwork.network });
+      // Convert detected network to /24 to avoid scanning too many hosts
+      let networkToUse = detectedNetwork.network;
+      if (networkToUse.includes('/')) {
+        const [baseIp] = networkToUse.split('/');
+        // Extract first three octets and use /24
+        const octets = baseIp.split('.');
+        if (octets.length >= 3) {
+          networkToUse = `${octets[0]}.${octets[1]}.${octets[2]}.0/24`;
+        }
+      }
+      setTarget(networkToUse);
+      log.info('Auto-detected network', {
+        original: detectedNetwork.network,
+        adjusted: networkToUse
+      });
     }
   }, [detectedNetwork, target]);
 
@@ -299,40 +312,65 @@ export function NetworkScan() {
           ) : isScanning ? (
             /* Scan Progress */
             <div className={styles.progressSection}>
-              <h2 className={styles.progressTitle}>Scanning Network...</h2>
-              <p className={styles.progressTarget}>{status?.scan_id}</p>
+              {scanError ? (
+                <>
+                  <h2 className={styles.progressTitle}>Scan Failed</h2>
+                  <ErrorMessage
+                    message={scanError}
+                    variant="inline"
+                  />
+                  <Button
+                    variant="primary"
+                    onClick={handleNewScan}
+                    className={styles.retryButton}
+                  >
+                    Try Again
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <h2 className={styles.progressTitle}>Scanning Network...</h2>
+                  <p className={styles.progressTarget}>{status?.scan_id}</p>
 
-              <Progress
-                value={progress}
-                showLabel
-                label="Scan progress"
-                size="lg"
-              />
+                  <Progress
+                    value={progress}
+                    showLabel
+                    label="Scan progress"
+                    size="lg"
+                  />
 
-              <div className={styles.progressStats}>
-                <div className={styles.progressStat}>
-                  <span className={styles.progressStatLabel}>Status</span>
-                  <Badge variant="primary">{formatStatus(status?.status || 'running')}</Badge>
-                </div>
-                <div className={styles.progressStat}>
-                  <span className={styles.progressStatLabel}>Devices Found</span>
-                  <span className={styles.progressStatValue}>
-                    {status?.device_count || 0}
-                  </span>
-                </div>
-              </div>
+                  <div className={styles.progressStats}>
+                    <div className={styles.progressStat}>
+                      <span className={styles.progressStatLabel}>Status</span>
+                      <Badge variant="primary">{formatStatus(status?.status || 'running')}</Badge>
+                    </div>
+                    <div className={styles.progressStat}>
+                      <span className={styles.progressStatLabel}>Devices Found</span>
+                      <span className={styles.progressStatValue}>
+                        {status?.device_count || 0}
+                      </span>
+                    </div>
+                  </div>
 
-              <Button
-                variant="destructive"
-                onClick={cancelScan}
-                className={styles.cancelButton}
-              >
-                Cancel Scan
-              </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={cancelScan}
+                    className={styles.cancelButton}
+                  >
+                    Cancel Scan
+                  </Button>
+                </>
+              )}
             </div>
           ) : scan ? (
             /* Scan Results */
             <div className={styles.resultsSection}>
+              {scan.error_message && (
+                <ErrorMessage
+                  message={scan.error_message}
+                  variant="inline"
+                />
+              )}
               <div className={styles.resultsHeader}>
                 <h2 className={styles.resultsTitle}>Scan Complete</h2>
                 <Button variant="outline" onClick={handleNewScan}>

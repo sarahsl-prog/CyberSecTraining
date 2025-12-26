@@ -132,5 +132,4 @@ export const scenarioService = {
   getTags,
   getDifficulties,
   reloadScenarios,
-
 };

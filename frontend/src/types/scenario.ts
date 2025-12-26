@@ -1,5 +1,4 @@
 /**
-
  * Type definitions for scenarios.
  */
 
@@ -244,4 +243,3 @@ export const DIFFICULTY_CONFIG: Record<DifficultyLevel, {
     icon: '🏆',
   },
 };
-

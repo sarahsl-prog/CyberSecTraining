@@ -8,7 +8,7 @@ It serves as the main entry point for the API layer to interact with scanning.
 
 import asyncio
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Optional, Union
 import uuid
 
@@ -259,7 +259,7 @@ class ScanOrchestrator:
 
             # Mark as complete
             self._current_scan = None
-            self._last_scan_time = datetime.utcnow()
+            self._last_scan_time = datetime.now(UTC)
 
             logger.info(f"Background scan {scan_id} completed: {len(result.devices)} devices found")
 
@@ -270,7 +270,7 @@ class ScanOrchestrator:
             if scan_id in self._scan_history:
                 self._scan_history[scan_id].status = ScanStatus.FAILED
                 self._scan_history[scan_id].error_message = f"Scan error: {str(e)}"
-                self._scan_history[scan_id].completed_at = datetime.utcnow()
+                self._scan_history[scan_id].completed_at = datetime.now(UTC)
 
                 # Save failed scan to database
                 self._datastore.save_scan(
@@ -312,7 +312,7 @@ class ScanOrchestrator:
 
         # Check cooldown period
         if self._last_scan_time:
-            elapsed = datetime.utcnow() - self._last_scan_time
+            elapsed = datetime.now(UTC) - self._last_scan_time
             cooldown = timedelta(seconds=settings.scan_cooldown)
 
             if elapsed < cooldown:
@@ -367,6 +367,7 @@ class ScanOrchestrator:
             devices=devices,
             started_at=started_at,
             completed_at=completed_at,
+            error_message=scan_dict.get("error_message"),
             progress=scan_dict.get("progress", 0.0),
             scanned_hosts=scan_dict.get("scanned_hosts", 0),
             total_hosts=scan_dict.get("total_hosts", 0),

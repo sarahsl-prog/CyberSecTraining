@@ -4,7 +4,7 @@ This implementation is for single-user mode where all data is stored
 locally. The user_id is always "local" in this implementation.
 """
 
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Any, Optional
 
 from sqlalchemy.orm import Session
@@ -50,7 +50,7 @@ class LocalDataStore(DataStore):
                 progress.hints_used = hints_used
                 progress.time_spent = time_spent
                 if completed:
-                    progress.completed_at = datetime.utcnow()
+                    progress.completed_at = datetime.now(UTC)
             else:
                 # Create new
                 progress = Progress(
@@ -60,7 +60,7 @@ class LocalDataStore(DataStore):
                     score=score,
                     hints_used=hints_used,
                     time_spent=time_spent,
-                    completed_at=datetime.utcnow() if completed else None,
+                    completed_at=datetime.now(UTC) if completed else None,
                 )
                 session.add(progress)
 
@@ -204,7 +204,7 @@ class LocalDataStore(DataStore):
                     scanned_hosts=scanned_hosts,
                     total_hosts=total_hosts,
                     results_summary=results_summary,
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(UTC),
                 )
                 session.add(scan)
 
@@ -329,5 +329,5 @@ class LocalDataStore(DataStore):
             "progress": self.get_all_progress(user_id),
             "preferences": self.get_all_preferences(user_id),
             "scans": self.list_scans(user_id, limit=1000),
-            "exported_at": datetime.utcnow().isoformat(),
+            "exported_at": datetime.now(UTC).isoformat(),
         }
