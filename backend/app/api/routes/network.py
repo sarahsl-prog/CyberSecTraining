@@ -78,7 +78,7 @@ def _device_to_response(device: DeviceInfo) -> DeviceResponse:
         hostname=device.hostname,
         vendor=device.vendor,
         os=device.os,
-        os_accuracy=device.os_accuracy,
+        os_accuracy=device.os_accuracy if device.os_accuracy is not None else 0,
         device_type=device.device_type,
         open_ports=[
             PortResponse(
