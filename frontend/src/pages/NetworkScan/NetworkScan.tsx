@@ -85,8 +85,21 @@ export function NetworkScan() {
     const isEnabled = autoDetectEnabled === null || autoDetectEnabled === 'true';
 
     if (isEnabled && detectedNetwork?.network && !target) {
-      setTarget(detectedNetwork.network);
-      log.info('Auto-detected network', { network: detectedNetwork.network });
+      // Convert detected network to /24 to avoid scanning too many hosts
+      let networkToUse = detectedNetwork.network;
+      if (networkToUse.includes('/')) {
+        const [baseIp] = networkToUse.split('/');
+        // Extract first three octets and use /24
+        const octets = baseIp.split('.');
+        if (octets.length >= 3) {
+          networkToUse = `${octets[0]}.${octets[1]}.${octets[2]}.0/24`;
+        }
+      }
+      setTarget(networkToUse);
+      log.info('Auto-detected network', {
+        original: detectedNetwork.network,
+        adjusted: networkToUse
+      });
     }
   }, [detectedNetwork, target]);
 
