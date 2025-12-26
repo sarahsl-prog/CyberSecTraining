@@ -279,9 +279,14 @@ class LocalDataStore(DataStore):
             return False
 
     def count_scans(self, user_id: str) -> int:
-        """Get total count of scans for a user."""
+        """Get total count of scans for a user.
+
+        Note: In single-user mode, all scans belong to the local user,
+        so user_id filtering is not applied. The Scan model does not
+        have a user_id column in this implementation.
+        """
         with self._get_session() as session:
-            return session.query(Scan).filter(Scan.user_id == user_id).count()
+            return session.query(Scan).count()
 
     # ==================== Leaderboard ====================
 
