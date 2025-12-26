@@ -5,7 +5,7 @@ These schemas define the request and response models for the network
 scanning endpoints. They provide automatic validation and documentation.
 """
 
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -47,7 +47,7 @@ class DeviceResponse(BaseModel):
     os_accuracy: int = Field(default=0, description="OS detection confidence (0-100)")
     device_type: Optional[str] = Field(None, description="Device category")
     open_ports: list[PortResponse] = Field(default_factory=list, description="Open ports")
-    last_seen: datetime = Field(default_factory=datetime.utcnow, description="Last detection time")
+    last_seen: datetime = Field(default_factory=lambda: datetime.now(UTC), description="Last detection time")
     is_up: bool = Field(default=True, description="Whether device is responding")
 
     model_config = ConfigDict(

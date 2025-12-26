@@ -9,6 +9,7 @@ These tests verify that:
 - Mode routing (training vs live) works correctly
 """
 
+import shutil
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timedelta, UTC
@@ -18,6 +19,11 @@ from app.services.scanner.base import ScanType, ScanStatus, ScanResult
 from app.services.scanner.network_validator import NetworkValidationError
 from app.services.scanner.fake_network_generator import FakeNetworkGenerator
 from app.services.scanner.nmap_scanner import NmapScanner
+
+
+def nmap_installed() -> bool:
+    """Check if nmap is installed on the system."""
+    return shutil.which("nmap") is not None
 
 
 class TestScanOrchestrator:
@@ -259,6 +265,7 @@ class TestScanOrchestrator:
             scanner = self.orchestrator._get_scanner()
             assert isinstance(scanner, FakeNetworkGenerator)
 
+    @pytest.mark.skipif(not nmap_installed(), reason="nmap not installed")
     def test_get_scanner_returns_nmap_in_live_mode(self):
         """Test that _get_scanner returns NmapScanner in live mode."""
         # Mock mode to return live
@@ -273,6 +280,7 @@ class TestScanOrchestrator:
             scanner2 = self.orchestrator._get_scanner()
             assert scanner1 is scanner2
 
+    @pytest.mark.skipif(not nmap_installed(), reason="nmap not installed")
     def test_get_scanner_caches_nmap_scanner(self):
         """Test that NmapScanner is cached across calls."""
         with patch.object(self.orchestrator, "_get_application_mode", return_value="live"):
