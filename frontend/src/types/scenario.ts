@@ -1,5 +1,5 @@
 /**
-<<<<<<< HEAD
+
  * Type definitions for scenarios.
  */
 
@@ -31,7 +31,8 @@ export interface Scenario extends ScenarioSummary {
   steps: ScenarioStep[];
   related_vulnerabilities: string[];
 }
-=======
+
+/**
  * Scenario-related types.
  *
  * These types define the data structures for educational
@@ -140,14 +141,13 @@ export interface ScenarioSummary {
   name: string;
   /** Description */
   description: string;
-  /** Difficulty level */
-  difficulty: DifficultyLevel;
+
   /** Number of devices */
   device_count: number;
   /** Number of vulnerabilities */
   vulnerability_count: number;
   /** Estimated time in minutes */
-  estimated_time?: number;
+  estimated_time: number;
   /** Tags */
   tags: string[];
   /** Whether completed by user */
@@ -244,4 +244,4 @@ export const DIFFICULTY_CONFIG: Record<DifficultyLevel, {
     icon: '🏆',
   },
 };
->>>>>>> b79ebb9e74f2c31524de5b1214ba402bb016d356
+
