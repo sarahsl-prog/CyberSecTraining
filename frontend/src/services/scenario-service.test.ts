@@ -45,13 +45,15 @@ describe('scenarioService', () => {
     });
 
     it('should handle API errors', async () => {
-      const mockError = { success: false, error: { message: 'API Error' } };
+      const mockError = { success: false, error: { detail: 'API Error' } };
       (apiClient.get as any).mockResolvedValue(mockError);
 
       const result = await scenarioService.listScenarios();
 
       expect(result.success).toBe(false);
-      expect(result.error.message).toBe('API Error');
+      if (!result.success) {
+        expect(result.error.detail).toBe('API Error');
+      }
     });
   });
 
@@ -84,7 +86,7 @@ describe('scenarioService', () => {
     });
 
     it('should handle API errors', async () => {
-      const mockError = { success: false, error: { message: 'API Error' } };
+      const mockError = { success: false, error: { detail: 'API Error' } };
       (apiClient.get as any).mockResolvedValue(mockError);
 
       const result = await scenarioService.getScenario('test-scenario');

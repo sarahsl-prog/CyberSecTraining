@@ -281,7 +281,7 @@ class LocalDataStore(DataStore):
     def count_scans(self, user_id: str) -> int:
         """Get total count of scans for a user."""
         with self._get_session() as session:
-            return session.query(Scan).count()
+            return session.query(Scan).filter(Scan.user_id == user_id).count()
 
     # ==================== Leaderboard ====================
 
