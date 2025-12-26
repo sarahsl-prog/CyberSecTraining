@@ -127,9 +127,18 @@ export function useScan() {
 
         // On failure
         if (statusUpdate.status === 'failed' || statusUpdate.status === 'cancelled') {
-          setError(statusUpdate.error_message || 'Scan failed');
+          const errorMsg = statusUpdate.error_message || 'Scan failed';
+          setError(errorMsg);
+
+          // Also update the scan object with error message for persistence
+          setScan(prev => prev ? { ...prev, error_message: errorMsg, status: statusUpdate.status } : null);
+
           setIsScanning(false);
-          log.warn('Scan failed/cancelled', { status: statusUpdate.status });
+          log.error('Scan failed/cancelled', {
+            status: statusUpdate.status,
+            error: errorMsg,
+            scanId: statusUpdate.scan_id
+          });
           break;
         }
       }
