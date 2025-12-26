@@ -6,7 +6,7 @@ for development and testing purposes. It creates realistic network scan
 data including devices, vulnerabilities, and scenarios.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import List
 
 from sqlalchemy.orm import Session
@@ -38,8 +38,8 @@ def create_sample_scan(db: Session) -> Scan:
         target_range="192.168.1.0/24",
         scan_type="quick",
         status="completed",
-        started_at=datetime.utcnow() - timedelta(hours=2),
-        completed_at=datetime.utcnow() - timedelta(hours=1, minutes=58),
+        started_at=datetime.now(UTC) - timedelta(hours=2),
+        completed_at=datetime.now(UTC) - timedelta(hours=1, minutes=58),
         scanned_hosts=254,
         total_hosts=254,
         progress=100.0,
@@ -298,21 +298,21 @@ def create_sample_progress(db: Session) -> List[Progress]:
             "scenario_id": "home-basics-01",
             "completed": True,
             "score": 95,
-            "completed_at": datetime.utcnow() - timedelta(days=7),
+            "completed_at": datetime.now(UTC) - timedelta(days=7),
         },
         {
             "user_id": "local",
             "scenario_id": "home-basics-02",
             "completed": True,
             "score": 88,
-            "completed_at": datetime.utcnow() - timedelta(days=5),
+            "completed_at": datetime.now(UTC) - timedelta(days=5),
         },
         {
             "user_id": "local",
             "scenario_id": "home-basics-03",
             "completed": False,
             "score": 45,
-            "last_accessed_at": datetime.utcnow() - timedelta(days=1),
+            "last_accessed_at": datetime.now(UTC) - timedelta(days=1),
         },
     ]
 

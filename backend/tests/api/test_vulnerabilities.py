@@ -5,7 +5,7 @@ These tests verify vulnerability CRUD operations and statistics work correctly.
 """
 
 import pytest
-from datetime import datetime
+from datetime import datetime, UTC
 from unittest.mock import MagicMock
 from fastapi.testclient import TestClient
 
@@ -241,7 +241,7 @@ class TestMarkVulnerabilityFixed:
     def test_mark_unfixed(self, client, mock_db, sample_vulnerability):
         """Test marking vulnerability as unfixed."""
         sample_vulnerability.is_fixed = True
-        sample_vulnerability.fixed_at = datetime.utcnow()
+        sample_vulnerability.fixed_at = datetime.now(UTC)
         sample_vulnerability.verified_fixed = True
 
         mock_db.query.return_value.filter.return_value.first.return_value = sample_vulnerability

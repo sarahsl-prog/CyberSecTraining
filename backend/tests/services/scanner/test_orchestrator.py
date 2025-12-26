@@ -11,7 +11,7 @@ These tests verify that:
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 from app.services.scanner.orchestrator import ScanOrchestrator, get_scan_orchestrator
 from app.services.scanner.base import ScanType, ScanStatus, ScanResult
@@ -75,7 +75,7 @@ class TestScanOrchestrator:
     async def test_rate_limiting_cooldown(self):
         """Test that scans respect cooldown period."""
         # Simulate a recent scan
-        self.orchestrator._last_scan_time = datetime.utcnow()
+        self.orchestrator._last_scan_time = datetime.now(UTC)
 
         with pytest.raises(RuntimeError) as exc_info:
             await self.orchestrator.start_scan(
@@ -95,7 +95,7 @@ class TestScanOrchestrator:
             status=ScanStatus.RUNNING,
         )
         # Set last scan time to past to avoid cooldown error
-        self.orchestrator._last_scan_time = datetime.utcnow() - timedelta(hours=1)
+        self.orchestrator._last_scan_time = datetime.now(UTC) - timedelta(hours=1)
 
         with pytest.raises(RuntimeError) as exc_info:
             await self.orchestrator.start_scan(
@@ -140,7 +140,7 @@ class TestScanOrchestrator:
         """Test getting scan history."""
         # Add some scans to datastore (scans are now loaded from database)
         for i in range(5):
-            scan_time = datetime.utcnow() - timedelta(minutes=i)
+            scan_time = datetime.now(UTC) - timedelta(minutes=i)
             self.orchestrator._datastore.save_scan(
                 user_id="local",
                 scan_id=f"scan-{i}",
@@ -286,7 +286,7 @@ class TestScanOrchestrator:
         # Mock mode to return training
         with patch.object(self.orchestrator, "_get_application_mode", return_value="training"):
             # Set last scan time to past to avoid cooldown
-            self.orchestrator._last_scan_time = datetime.utcnow() - timedelta(hours=1)
+            self.orchestrator._last_scan_time = datetime.now(UTC) - timedelta(hours=1)
 
             # Start scan
             result = await self.orchestrator.start_scan(
@@ -308,7 +308,7 @@ class TestScanOrchestrator:
         ), patch("app.services.scanner.orchestrator.settings") as mock_settings:
             mock_settings.enable_real_scanning = False
             mock_settings.scan_cooldown = 5  # Add scan_cooldown to mock
-            self.orchestrator._last_scan_time = datetime.utcnow() - timedelta(hours=1)
+            self.orchestrator._last_scan_time = datetime.now(UTC) - timedelta(hours=1)
 
             # Should raise error
             with pytest.raises(RuntimeError) as exc_info:
@@ -328,7 +328,7 @@ class TestScanOrchestrator:
         ), patch("app.services.scanner.orchestrator.settings") as mock_settings:
             mock_settings.enable_real_scanning = False
             mock_settings.scan_cooldown = 5  # Add scan_cooldown to mock
-            self.orchestrator._last_scan_time = datetime.utcnow() - timedelta(hours=1)
+            self.orchestrator._last_scan_time = datetime.now(UTC) - timedelta(hours=1)
 
             # Should succeed in training mode
             result = await self.orchestrator.start_scan(

@@ -13,7 +13,7 @@ Note: Some features (like OS detection) may require elevated privileges.
 """
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Optional
 import xml.etree.ElementTree as ET
 
@@ -169,7 +169,7 @@ class NmapScanner(BaseScannerInterface):
 
             # Update status
             result.status = ScanStatus.RUNNING
-            result.started_at = datetime.utcnow()
+            result.started_at = datetime.now(UTC)
 
             # Get scan arguments
             arguments = self._get_scan_arguments(scan_type, port_range)
@@ -185,7 +185,7 @@ class NmapScanner(BaseScannerInterface):
 
             # Mark complete
             result.status = ScanStatus.COMPLETED
-            result.completed_at = datetime.utcnow()
+            result.completed_at = datetime.now(UTC)
             result.progress = 100.0
 
             # Audit log completion
@@ -205,7 +205,7 @@ class NmapScanner(BaseScannerInterface):
             logger.error(f"Network validation failed: {e}")
             result.status = ScanStatus.FAILED
             result.error_message = str(e)
-            result.completed_at = datetime.utcnow()
+            result.completed_at = datetime.now(UTC)
             audit_logger.warning(
                 f"Scan blocked - invalid target | "
                 f"scan_id={result.scan_id} | "
@@ -217,7 +217,7 @@ class NmapScanner(BaseScannerInterface):
             logger.exception(f"Scan failed: {e}")
             result.status = ScanStatus.FAILED
             result.error_message = f"Scan error: {str(e)}"
-            result.completed_at = datetime.utcnow()
+            result.completed_at = datetime.now(UTC)
             audit_logger.error(
                 f"Scan failed | "
                 f"scan_id={result.scan_id} | "
@@ -415,7 +415,7 @@ class NmapScanner(BaseScannerInterface):
             await process.wait()
 
         result.status = ScanStatus.CANCELLED
-        result.completed_at = datetime.utcnow()
+        result.completed_at = datetime.now(UTC)
 
         audit_logger.info(f"Scan cancelled | scan_id={scan_id}")
         logger.info(f"Scan {scan_id} cancelled")

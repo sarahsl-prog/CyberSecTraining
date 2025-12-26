@@ -9,7 +9,7 @@ This module provides REST API endpoints for:
 """
 
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, UTC
 from math import ceil
 
 from fastapi import APIRouter, HTTPException, Query, Depends
@@ -261,7 +261,7 @@ async def update_vulnerability(
     # Handle is_fixed specially - set fixed_at timestamp
     if "is_fixed" in update_data:
         if update_data["is_fixed"] and not vuln.is_fixed:
-            vuln.fixed_at = datetime.utcnow()
+            vuln.fixed_at = datetime.now(UTC)
         elif not update_data["is_fixed"]:
             vuln.fixed_at = None
             vuln.verified_fixed = False
@@ -310,7 +310,7 @@ async def mark_vulnerability_fixed(
     vuln.verified_fixed = data.verified
 
     if data.is_fixed:
-        vuln.fixed_at = datetime.utcnow()
+        vuln.fixed_at = datetime.now(UTC)
     else:
         vuln.fixed_at = None
         vuln.verified_fixed = False
