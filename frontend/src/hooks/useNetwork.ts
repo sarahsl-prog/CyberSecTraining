@@ -19,7 +19,7 @@ import type {
   ScanStatus,
 } from '@/types';
 import { logger } from '@/services';
-import { useAsync, useAsyncEffect } from './useAsync';
+import { useAsyncEffect } from './useAsync';
 
 const log = logger.create('useNetwork');
 

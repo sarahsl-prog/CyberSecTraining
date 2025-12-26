@@ -89,7 +89,9 @@ function getDeviceShape(deviceType?: string): string {
 /**
  * Cytoscape stylesheet for network graph.
  */
-const cytoscapeStylesheet: cytoscape.Stylesheet[] = [
+// Cytoscape stylesheet - using type assertion because the strict types
+// don't fully support dynamic data() expressions and all style properties
+const cytoscapeStylesheet = [
   {
     selector: 'node',
     style: {
@@ -243,7 +245,7 @@ export function NetworkGraph({
     cyRef.current = cytoscape({
       container: containerRef.current,
       elements: [...elements.nodes, ...elements.edges] as cytoscape.ElementDefinition[],
-      style: cytoscapeStylesheet,
+      style: cytoscapeStylesheet as (cytoscape.StylesheetStyle | cytoscape.StylesheetCSS)[],
       layout: {
         name: 'concentric',
         concentric: (node: NodeSingular) => {
@@ -362,7 +364,9 @@ export function NetworkGraph({
 
           let nextIndex = 0;
           if (selected.length > 0) {
-            const currentIndex = nodes.indexOf(selected[0]);
+            // Find current node index using filter
+            const nodesArray = nodes.toArray();
+            const currentIndex = nodesArray.findIndex(n => n.id() === selected[0].id());
             nextIndex = event.shiftKey
               ? (currentIndex - 1 + nodes.length) % nodes.length
               : (currentIndex + 1) % nodes.length;

@@ -16,7 +16,7 @@ import {
   startScenario,
   type ScenarioListOptions,
 } from '@/services/scenario-service';
-import type { DifficultyLevel, ScenarioSummary, ContentPack, Scenario, ScenarioSession } from '@/types';
+import type { DifficultyLevel, Scenario, ScenarioSession } from '@/types';
 import { logger } from '@/services';
 import { useAsyncEffect } from './useAsync';
 

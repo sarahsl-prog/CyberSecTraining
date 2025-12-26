@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
 
 // Color mode options including colorblind-friendly modes
 export type ColorMode =
@@ -186,7 +186,8 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_SHOW_FOCUS_INDICATOR', payload: show });
   }, []);
 
-  const announce = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
+  const announce = useCallback((message: string, _priority: 'polite' | 'assertive' = 'polite') => {
+    // Note: priority is accepted for future ARIA live region support
     dispatch({ type: 'ANNOUNCE', payload: message });
     // Clear announcement after screen reader has time to read it
     setTimeout(() => {

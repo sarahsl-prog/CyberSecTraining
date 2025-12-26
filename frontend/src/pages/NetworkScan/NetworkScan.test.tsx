@@ -225,8 +225,6 @@ describe('NetworkScan', () => {
     mockFetch({ items: [], total: 0, page: 1, page_size: 10, pages: 0 });
     mockFetch({ mode: 'training', require_confirmation_for_live: true });
 
-    const user = userEvent.setup();
-
     render(
       <TestWrapper>
         <NetworkScan />

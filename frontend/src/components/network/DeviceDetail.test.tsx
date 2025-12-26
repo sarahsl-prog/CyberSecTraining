@@ -3,22 +3,21 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { DeviceDetail } from './DeviceDetail';
 import type { Device, Vulnerability } from '@/types';
-import { mockFetch } from '@/test/mocks';
 
 // Mock the hooks module
 vi.mock('@/hooks', () => ({
-  useVulnerabilities: vi.fn(() => ({
-    data: [],
-    loading: false,
+  useVulnerabilityList: vi.fn(() => ({
+    vulnerabilities: [],
+    isLoading: false,
     error: null,
   })),
 }));
 
 // Import after mocking
-import { useVulnerabilities } from '@/hooks';
+import { useVulnerabilityList } from '@/hooks';
 
 describe('DeviceDetail', () => {
   const mockDevice: Device = {
@@ -82,9 +81,9 @@ describe('DeviceDetail', () => {
     });
 
     // Reset hook mock
-    (useVulnerabilities as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: [],
-      loading: false,
+    (useVulnerabilityList as ReturnType<typeof vi.fn>).mockReturnValue({
+      vulnerabilities: [],
+      isLoading: false,
       error: null,
     });
   });
@@ -160,9 +159,9 @@ describe('DeviceDetail', () => {
   });
 
   it('renders loading state while fetching vulnerabilities', () => {
-    (useVulnerabilities as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: null,
-      loading: true,
+    (useVulnerabilityList as ReturnType<typeof vi.fn>).mockReturnValue({
+      vulnerabilities: [],
+      isLoading: true,
       error: null,
     });
 
@@ -172,10 +171,10 @@ describe('DeviceDetail', () => {
   });
 
   it('renders error state when vulnerability fetch fails', () => {
-    (useVulnerabilities as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: null,
-      loading: false,
-      error: 'Failed to fetch',
+    (useVulnerabilityList as ReturnType<typeof vi.fn>).mockReturnValue({
+      vulnerabilities: [],
+      isLoading: false,
+      error: { detail: 'Failed to fetch' },
     });
 
     render(<DeviceDetail {...defaultProps} />);
@@ -184,9 +183,9 @@ describe('DeviceDetail', () => {
   });
 
   it('renders vulnerability list when loaded', () => {
-    (useVulnerabilities as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: mockVulnerabilities,
-      loading: false,
+    (useVulnerabilityList as ReturnType<typeof vi.fn>).mockReturnValue({
+      vulnerabilities: mockVulnerabilities,
+      isLoading: false,
       error: null,
     });
 
@@ -197,9 +196,9 @@ describe('DeviceDetail', () => {
   });
 
   it('shows "Fixed" badge for fixed vulnerabilities', () => {
-    (useVulnerabilities as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: mockVulnerabilities,
-      loading: false,
+    (useVulnerabilityList as ReturnType<typeof vi.fn>).mockReturnValue({
+      vulnerabilities: mockVulnerabilities,
+      isLoading: false,
       error: null,
     });
 
@@ -209,9 +208,9 @@ describe('DeviceDetail', () => {
   });
 
   it('renders no vulnerabilities message when list is empty', () => {
-    (useVulnerabilities as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: [],
-      loading: false,
+    (useVulnerabilityList as ReturnType<typeof vi.fn>).mockReturnValue({
+      vulnerabilities: [],
+      isLoading: false,
       error: null,
     });
 
@@ -221,9 +220,9 @@ describe('DeviceDetail', () => {
   });
 
   it('calls onVulnerabilitySelect when vulnerability is clicked', () => {
-    (useVulnerabilities as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: mockVulnerabilities,
-      loading: false,
+    (useVulnerabilityList as ReturnType<typeof vi.fn>).mockReturnValue({
+      vulnerabilities: mockVulnerabilities,
+      isLoading: false,
       error: null,
     });
 

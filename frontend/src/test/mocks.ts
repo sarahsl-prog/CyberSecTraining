@@ -73,7 +73,7 @@ export const mockVulnerability: Vulnerability = {
   severity: 'high',
   title: 'Default Credentials Detected',
   description: 'The device is using default login credentials.',
-  cve_id: null,
+  cve_id: undefined,
   affected_service: 'http',
   affected_port: '80',
   remediation: 'Change the default username and password immediately.',

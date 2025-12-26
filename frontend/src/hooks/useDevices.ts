@@ -12,7 +12,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { deviceService, type DeviceListOptions } from '@/services';
 import type { Device, DeviceUpdate, DeviceFilters } from '@/types';
 import { logger } from '@/services';
-import { useAsync, useAsyncEffect } from './useAsync';
+import { useAsyncEffect } from './useAsync';
 
 const log = logger.create('useDevices');
 

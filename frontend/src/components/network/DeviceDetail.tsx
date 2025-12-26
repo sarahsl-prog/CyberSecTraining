@@ -8,7 +8,7 @@
 
 import type { Device, Vulnerability } from '@/types';
 import { Modal, Badge, Button, Spinner, ErrorMessage } from '@/components/common';
-import { useVulnerabilities } from '@/hooks';
+import { useVulnerabilityList } from '@/hooks';
 import { logger } from '@/services/logger';
 import styles from './DeviceDetail.module.css';
 
@@ -95,10 +95,10 @@ export function DeviceDetail({
 }: DeviceDetailProps) {
   // Fetch vulnerabilities for this device
   const {
-    data: vulnerabilities,
-    loading,
+    vulnerabilities,
+    isLoading: loading,
     error,
-  } = useVulnerabilities(device?.id ? { device_id: device.id } : undefined);
+  } = useVulnerabilityList(device?.id ? { device_id: device.id } : undefined);
 
   // Log when device detail is opened
   if (isOpen && device) {
@@ -226,12 +226,12 @@ export function DeviceDetail({
           ) : error ? (
             <ErrorMessage
               title="Failed to load vulnerabilities"
-              message={error}
+              message={typeof error === 'string' ? error : error.detail || 'Unknown error'}
               compact
             />
           ) : vulnerabilities && vulnerabilities.length > 0 ? (
             <ul className={styles.vulnList}>
-              {vulnerabilities.map((vuln) => (
+              {vulnerabilities.map((vuln: Vulnerability) => (
                 <li key={vuln.id}>
                   <button
                     type="button"

@@ -74,10 +74,10 @@ export function ExplanationPanel({
   // Load default difficulty from settings
   const getDefaultDifficulty = (): DifficultyLevel => {
     const saved = localStorage.getItem('cybersec-explanation-detail');
-    if (saved === 'beginner' || saved === 'intermediate' || saved === 'advanced') {
+    if (saved === 'beginner' || saved === 'intermediate' || saved === 'advanced' || saved === 'expert') {
       return saved as DifficultyLevel;
     }
-    return 'standard'; // Map to DifficultyLevel which uses 'standard' not 'intermediate'
+    return 'intermediate';
   };
 
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(getDefaultDifficulty());
@@ -102,8 +102,13 @@ export function ExplanationPanel({
         skipCache
       );
 
-      setExplanation(response);
-      log.info('Explanation loaded', { provider: response.provider, cached: response.cached });
+      if (response.success) {
+        setExplanation(response.data);
+        log.info('Explanation loaded', { provider: response.data.provider, cached: response.data.cached });
+      } else {
+        setError(response.error.detail);
+        log.error('Failed to fetch explanation', { error: response.error.detail });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load explanation';
       setError(message);

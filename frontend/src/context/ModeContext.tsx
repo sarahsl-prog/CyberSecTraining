@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
 import { apiClient } from '@/services/api-client';
 import { logger } from '@/services/logger';
 
@@ -124,7 +124,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
     if (result.success && result.data) {
       return result.data.mode;
     } else {
-      log.warn('Failed to fetch mode from backend, using default', result.error);
+      log.warn('Failed to fetch mode from backend, using default', !result.success ? result.error : undefined);
       return null;
     }
   }, []);
@@ -142,11 +142,11 @@ export function ModeProvider({ children }: { children: ReactNode }) {
     if (result.success) {
       log.info('Mode saved to backend successfully', { mode });
       return true;
-    } else {
-      log.error('Failed to save mode to backend', result.error);
-      dispatch({ type: 'SET_ERROR', payload: result.error?.detail || 'Failed to save mode' });
-      return false;
     }
+
+    log.error('Failed to save mode to backend', result.error);
+    dispatch({ type: 'SET_ERROR', payload: result.error.detail || 'Failed to save mode' });
+    return false;
   }, []);
 
   /**
