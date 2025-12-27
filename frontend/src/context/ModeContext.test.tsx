@@ -2,37 +2,10 @@
  * ModeContext unit tests.
  */
 
-import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import { ModeProvider, useMode } from './ModeContext';
 import { mockFetch, mockFetchError } from '@/test/mocks';
-
-// Error boundary for testing error cases
-class TestErrorBoundary extends React.Component<
-  { children: React.ReactNode; onError?: (error: Error) => void },
-  { hasError: boolean; error: Error | null }
-> {
-  constructor(props: { children: React.ReactNode; onError?: (error: Error) => void }) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error) {
-    this.props.onError?.(error);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <div data-testid="error-boundary">{this.state.error?.message}</div>;
-    }
-    return this.props.children;
-  }
-}
 
 // Test component that uses the hook
 function TestComponent() {
@@ -357,40 +330,18 @@ describe('ModeContext', () => {
   });
 
   describe('useMode hook', () => {
-    it('throws error when used outside provider', async () => {
-      // Suppress all error output for this intentional error test
+    it('throws error when used outside provider', () => {
+      // Suppress console.error from React's error logging
       const originalError = console.error;
-      const originalWarn = console.warn;
       console.error = vi.fn();
-      console.warn = vi.fn();
 
-      // Also suppress jsdom's unhandled error reporting
-      const originalAddEventListener = window.addEventListener;
-      window.addEventListener = vi.fn((event, handler) => {
-        if (event === 'error') return; // Suppress error events
-        return originalAddEventListener.call(window, event, handler);
-      });
+      // Test that rendering without provider throws
+      expect(() => {
+        render(<TestComponent />);
+      }).toThrow('useMode must be used within a ModeProvider');
 
-      let caughtError: Error | null = null;
-
-      render(
-        <TestErrorBoundary onError={(err) => { caughtError = err; }}>
-          <TestComponent />
-        </TestErrorBoundary>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByTestId('error-boundary')).toHaveTextContent(
-          'useMode must be used within a ModeProvider'
-        );
-      });
-
-      expect((caughtError as Error | null)?.message).toBe('useMode must be used within a ModeProvider');
-
-      // Restore all handlers
+      // Restore console.error
       console.error = originalError;
-      console.warn = originalWarn;
-      window.addEventListener = originalAddEventListener;
     });
   });
 });

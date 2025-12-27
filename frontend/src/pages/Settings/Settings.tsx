@@ -31,7 +31,7 @@ const STORAGE_KEYS = {
 /**
  * Type definitions for settings.
  */
-type ScanType = 'quick' | 'deep' | 'vulnerability';
+type ScanType = 'quick' | 'deep' | 'discovery';
 type ExplanationDetail = 'brief' | 'standard' | 'detailed';
 
 /**
@@ -540,7 +540,7 @@ export function Settings() {
               >
                 <option value="quick">Quick Scan</option>
                 <option value="deep">Deep Scan</option>
-                <option value="vulnerability">Vulnerability Scan</option>
+                <option value="discovery">Discovery Scan</option>
               </select>
             </div>
 

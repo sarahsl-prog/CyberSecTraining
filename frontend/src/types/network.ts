@@ -7,8 +7,9 @@
 
 /**
  * Type of scan to perform on the network.
+ * Must match backend ScanType enum values.
  */
-export type ScanType = 'quick' | 'deep' | 'vulnerability';
+export type ScanType = 'quick' | 'deep' | 'discovery' | 'custom';
 
 /**
  * Current status of a scan operation.

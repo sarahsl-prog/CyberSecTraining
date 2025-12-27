@@ -37,9 +37,9 @@ const SCAN_TYPES: Array<{
     description: 'Comprehensive scan of all ports with service detection',
   },
   {
-    value: 'vulnerability',
-    label: 'Vulnerability Scan',
-    description: 'Deep scan with vulnerability detection and analysis',
+    value: 'discovery',
+    label: 'Discovery Scan',
+    description: 'Host discovery only - finds devices without port scanning',
   },
 ];
 

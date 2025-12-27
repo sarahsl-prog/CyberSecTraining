@@ -98,7 +98,7 @@ describe('NetworkScan', () => {
 
     expect(screen.getByText('Quick Scan')).toBeInTheDocument();
     expect(screen.getByText('Deep Scan')).toBeInTheDocument();
-    expect(screen.getByText('Vulnerability Scan')).toBeInTheDocument();
+    expect(screen.getByText('Discovery Scan')).toBeInTheDocument();
   });
 
   it('requires consent checkbox to start scan', () => {
