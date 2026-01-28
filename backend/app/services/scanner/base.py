@@ -8,7 +8,7 @@ should inherit from BaseScannerInterface.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, UTC
 from enum import Enum
 from typing import Optional
 import uuid
@@ -103,7 +103,7 @@ class DeviceInfo:
     os_accuracy: int = 0
     device_type: Optional[str] = None
     open_ports: list[PortInfo] = field(default_factory=list)
-    last_seen: datetime = field(default_factory=datetime.utcnow)
+    last_seen: datetime = field(default_factory=lambda: datetime.now(UTC))
     is_up: bool = True
 
     def to_dict(self) -> dict:

@@ -1,0 +1,90 @@
+{
+  "id": "router_hardening",
+  "name": "Router Security Hardening",
+  "description": "Learn how to secure a router by identifying and remediating common security misconfigurations. This scenario focuses on the critical gateway device in any network.",
+  "difficulty": "intermediate",
+  "learning_objectives": [
+    "Understand why routers are critical security points",
+    "Identify insecure router configurations",
+    "Learn about secure management protocols",
+    "Understand the risks of UPnP and remote management"
+  ],
+  "devices": [
+    {
+      "id": "router-1",
+      "hostname": "office-router",
+      "ip": "192.168.1.1",
+      "device_type": "router",
+      "os": "DD-WRT",
+      "is_gateway": true,
+      "open_ports": [22, 23, 80, 443, 1900, 8080],
+      "vulnerabilities": [
+        {
+          "vuln_type": "default_credentials",
+          "severity": "critical",
+          "service": "http",
+          "port": 80,
+          "hint": "The admin panel uses factory-default credentials"
+        },
+        {
+          "vuln_type": "open_telnet",
+          "severity": "critical",
+          "service": "telnet",
+          "port": 23,
+          "hint": "An unencrypted management protocol is enabled"
+        },
+        {
+          "vuln_type": "upnp_enabled",
+          "severity": "high",
+          "service": "upnp",
+          "port": 1900,
+          "hint": "A protocol that can punch holes in your firewall"
+        },
+        {
+          "vuln_type": "unencrypted_http",
+          "severity": "medium",
+          "service": "http",
+          "port": 8080,
+          "hint": "The admin interface is also available without encryption"
+        }
+      ]
+    },
+    {
+      "id": "switch-1",
+      "hostname": "network-switch",
+      "ip": "192.168.1.2",
+      "device_type": "switch",
+      "os": "Managed Switch OS",
+      "is_gateway": false,
+      "open_ports": [80, 161],
+      "vulnerabilities": [
+        {
+          "vuln_type": "default_credentials",
+          "severity": "high",
+          "service": "http",
+          "port": 80,
+          "hint": "Managed switches also have web interfaces"
+        },
+        {
+          "vuln_type": "open_snmp",
+          "severity": "high",
+          "service": "snmp",
+          "port": 161,
+          "hint": "A network monitoring protocol with weak default security"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "author": "CyberSec Teaching Tool",
+    "created_at": "2024-12-09",
+    "version": "1.0.0",
+    "tags": ["intermediate", "router", "hardening", "network-infrastructure"],
+    "estimated_time": 25,
+    "prerequisites": ["home_network_101"]
+  },
+  "success_criteria": {
+    "vulnerabilities_to_find": 6,
+    "minimum_score": 75
+  }
+}

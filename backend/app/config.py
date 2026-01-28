@@ -6,8 +6,9 @@ variables with sensible defaults. Configuration is validated using Pydantic.
 """
 
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Literal
 
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
@@ -40,6 +41,11 @@ class Settings(BaseSettings):
     enable_real_scanning: bool = True
     enable_telemetry: bool = False
 
+    # Application Mode
+    # Default mode for the application: 'training' (safe, fake data) or 'live' (real scanning)
+    # Training mode is recommended for learning and classroom environments
+    default_application_mode: Literal['training', 'live'] = 'training'
+
     # Network Scanning Configuration
     scan_timeout: int = 300  # Max scan duration in seconds (5 minutes)
     max_network_size: int = 256  # Maximum IPs to scan (/24 network)
@@ -56,10 +62,11 @@ class Settings(BaseSettings):
     packs_dir: Path = Path("../packs")
     knowledge_base_dir: Path = Path("../knowledge-base")
 
-    class Config:
-        env_file = "../.env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = ConfigDict(
+        env_file="../.env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
 
 
 # Global settings instance

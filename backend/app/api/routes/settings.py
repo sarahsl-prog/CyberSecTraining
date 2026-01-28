@@ -1,12 +1,13 @@
 """Settings management endpoints."""
 
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.dependencies import get_datastore
 from app.services.datastore.base import DataStore
+from app.config import settings as app_settings
 
 router = APIRouter()
 
@@ -45,6 +46,18 @@ class PrivacySettings(BaseModel):
     telemetry_opt_in: bool = False
 
 
+class ModeSettings(BaseModel):
+    """
+    Application mode settings.
+
+    Determines whether the application operates in training mode (safe, simulated data)
+    or live mode (real network scanning).
+    """
+
+    mode: Literal['training', 'live'] = 'training'
+    require_confirmation_for_live: bool = True
+
+
 class AllSettings(BaseModel):
     """Combined settings response."""
 
@@ -52,6 +65,7 @@ class AllSettings(BaseModel):
     llm: LLMSettings
     scan: ScanSettings
     privacy: PrivacySettings
+    mode: ModeSettings
 
 
 def _get_settings_with_default(
@@ -74,6 +88,7 @@ async def get_all_settings(datastore: DataStore = Depends(get_datastore)) -> All
         llm=_get_settings_with_default(datastore, "llm_settings", LLMSettings),
         scan=_get_settings_with_default(datastore, "scan_settings", ScanSettings),
         privacy=_get_settings_with_default(datastore, "privacy_settings", PrivacySettings),
+        mode=_get_settings_with_default(datastore, "mode_settings", ModeSettings),
     )
 
 
@@ -160,6 +175,62 @@ async def update_privacy_settings(
 ) -> PrivacySettings:
     """Update privacy settings."""
     datastore.save_preference("local", "privacy_settings", settings.model_dump_json())
+    return settings
+
+
+@router.get("/mode", response_model=ModeSettings)
+async def get_mode_settings(datastore: DataStore = Depends(get_datastore)) -> ModeSettings:
+    """
+    Get application mode settings.
+
+    Returns the current application mode ('training' or 'live') and confirmation settings.
+    Defaults to training mode if not previously set.
+    """
+    return _get_settings_with_default(datastore, "mode_settings", ModeSettings)
+
+
+@router.post("/mode", response_model=ModeSettings)
+async def update_mode_settings(
+    settings: ModeSettings, datastore: DataStore = Depends(get_datastore)
+) -> ModeSettings:
+    """
+    Update application mode settings.
+
+    Changes the application mode between training (safe, simulated data) and
+    live (real network scanning). Mode changes are logged for audit purposes.
+
+    Args:
+        settings: New mode settings including mode and confirmation requirement
+
+    Returns:
+        Updated mode settings
+
+    Raises:
+        HTTPException: If mode value is invalid
+    """
+    # Validate mode value
+    valid_modes = ["training", "live"]
+    if settings.mode not in valid_modes:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid mode. Must be one of: {valid_modes}"
+        )
+
+    # Log mode changes for audit trail
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # Get current mode to detect changes
+    current_settings = _get_settings_with_default(datastore, "mode_settings", ModeSettings)
+    if current_settings.mode != settings.mode:
+        logger.info(
+            f"Application mode changed: {current_settings.mode} -> {settings.mode} | "
+            f"user_id=local"
+        )
+
+    # Save the new mode settings
+    datastore.save_preference("local", "mode_settings", settings.model_dump_json())
+
     return settings
 
 

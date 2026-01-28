@@ -7,23 +7,32 @@ These tests verify device CRUD operations work correctly.
 import pytest
 import json
 from datetime import datetime
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 from fastapi.testclient import TestClient
 
 from app.main import app
 from app.models.device import Device
-
-
-@pytest.fixture
-def client():
-    """Create test client."""
-    return TestClient(app)
+from app.db.session import get_db
 
 
 @pytest.fixture
 def mock_db():
     """Create mock database session."""
     return MagicMock()
+
+
+@pytest.fixture
+def client(mock_db):
+    """Create test client with mocked database."""
+    def override_get_db():
+        try:
+            yield mock_db
+        finally:
+            pass
+
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -54,15 +63,12 @@ def sample_device():
 class TestListDevices:
     """Tests for GET /api/v1/devices endpoint."""
 
-    @patch("app.api.routes.devices.get_db")
-    def test_list_devices_empty(self, mock_get_db, client):
+    def test_list_devices_empty(self, client, mock_db):
         """Test listing devices when none exist."""
-        mock_db = MagicMock()
         mock_query = MagicMock()
         mock_query.count.return_value = 0
         mock_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
         mock_db.query.return_value = mock_query
-        mock_get_db.return_value = mock_db
 
         response = client.get("/api/v1/devices")
 
@@ -71,16 +77,13 @@ class TestListDevices:
         assert data["total"] == 0
         assert data["items"] == []
 
-    @patch("app.api.routes.devices.get_db")
-    def test_list_devices_with_results(self, mock_get_db, client, sample_device):
+    def test_list_devices_with_results(self, client, mock_db, sample_device):
         """Test listing devices with results."""
-        mock_db = MagicMock()
         mock_query = MagicMock()
         mock_query.count.return_value = 1
         mock_query.filter.return_value = mock_query
         mock_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [sample_device]
         mock_db.query.return_value = mock_query
-        mock_get_db.return_value = mock_db
 
         response = client.get("/api/v1/devices")
 
@@ -90,16 +93,13 @@ class TestListDevices:
         assert len(data["items"]) == 1
         assert data["items"][0]["ip"] == "192.168.1.1"
 
-    @patch("app.api.routes.devices.get_db")
-    def test_list_devices_filter_by_scan(self, mock_get_db, client, sample_device):
+    def test_list_devices_filter_by_scan(self, client, mock_db, sample_device):
         """Test filtering devices by scan ID."""
-        mock_db = MagicMock()
         mock_query = MagicMock()
         mock_query.count.return_value = 1
         mock_query.filter.return_value = mock_query
         mock_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [sample_device]
         mock_db.query.return_value = mock_query
-        mock_get_db.return_value = mock_db
 
         response = client.get("/api/v1/devices?scan_id=scan-456")
 
@@ -107,16 +107,13 @@ class TestListDevices:
         # Verify filter was called
         mock_query.filter.assert_called()
 
-    @patch("app.api.routes.devices.get_db")
-    def test_list_devices_pagination(self, mock_get_db, client):
+    def test_list_devices_pagination(self, client, mock_db):
         """Test device pagination."""
-        mock_db = MagicMock()
         mock_query = MagicMock()
         mock_query.count.return_value = 100
         mock_query.filter.return_value = mock_query
         mock_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
         mock_db.query.return_value = mock_query
-        mock_get_db.return_value = mock_db
 
         response = client.get("/api/v1/devices?page=2&page_size=10")
 
@@ -130,12 +127,9 @@ class TestListDevices:
 class TestGetDevice:
     """Tests for GET /api/v1/devices/{device_id} endpoint."""
 
-    @patch("app.api.routes.devices.get_db")
-    def test_get_device_found(self, mock_get_db, client, sample_device):
+    def test_get_device_found(self, client, mock_db, sample_device):
         """Test getting existing device."""
-        mock_db = MagicMock()
         mock_db.query.return_value.filter.return_value.first.return_value = sample_device
-        mock_get_db.return_value = mock_db
 
         response = client.get("/api/v1/devices/device-123")
 
@@ -144,12 +138,9 @@ class TestGetDevice:
         assert data["id"] == "device-123"
         assert data["ip"] == "192.168.1.1"
 
-    @patch("app.api.routes.devices.get_db")
-    def test_get_device_not_found(self, mock_get_db, client):
+    def test_get_device_not_found(self, client, mock_db):
         """Test getting non-existent device."""
-        mock_db = MagicMock()
         mock_db.query.return_value.filter.return_value.first.return_value = None
-        mock_get_db.return_value = mock_db
 
         response = client.get("/api/v1/devices/nonexistent")
 
@@ -159,12 +150,9 @@ class TestGetDevice:
 class TestUpdateDevice:
     """Tests for PUT /api/v1/devices/{device_id} endpoint."""
 
-    @patch("app.api.routes.devices.get_db")
-    def test_update_device(self, mock_get_db, client, sample_device):
+    def test_update_device(self, client, mock_db, sample_device):
         """Test updating device."""
-        mock_db = MagicMock()
         mock_db.query.return_value.filter.return_value.first.return_value = sample_device
-        mock_get_db.return_value = mock_db
 
         response = client.put(
             "/api/v1/devices/device-123",
@@ -174,12 +162,9 @@ class TestUpdateDevice:
         assert response.status_code == 200
         mock_db.commit.assert_called_once()
 
-    @patch("app.api.routes.devices.get_db")
-    def test_update_device_not_found(self, mock_get_db, client):
+    def test_update_device_not_found(self, client, mock_db):
         """Test updating non-existent device."""
-        mock_db = MagicMock()
         mock_db.query.return_value.filter.return_value.first.return_value = None
-        mock_get_db.return_value = mock_db
 
         response = client.put(
             "/api/v1/devices/nonexistent",
@@ -192,12 +177,9 @@ class TestUpdateDevice:
 class TestDeleteDevice:
     """Tests for DELETE /api/v1/devices/{device_id} endpoint."""
 
-    @patch("app.api.routes.devices.get_db")
-    def test_delete_device(self, mock_get_db, client, sample_device):
+    def test_delete_device(self, client, mock_db, sample_device):
         """Test deleting device."""
-        mock_db = MagicMock()
         mock_db.query.return_value.filter.return_value.first.return_value = sample_device
-        mock_get_db.return_value = mock_db
 
         response = client.delete("/api/v1/devices/device-123")
 
@@ -205,12 +187,9 @@ class TestDeleteDevice:
         mock_db.delete.assert_called_once_with(sample_device)
         mock_db.commit.assert_called_once()
 
-    @patch("app.api.routes.devices.get_db")
-    def test_delete_device_not_found(self, mock_get_db, client):
+    def test_delete_device_not_found(self, client, mock_db):
         """Test deleting non-existent device."""
-        mock_db = MagicMock()
         mock_db.query.return_value.filter.return_value.first.return_value = None
-        mock_get_db.return_value = mock_db
 
         response = client.delete("/api/v1/devices/nonexistent")
 
@@ -220,8 +199,7 @@ class TestDeleteDevice:
 class TestGetDeviceVulnerabilities:
     """Tests for GET /api/v1/devices/{device_id}/vulnerabilities endpoint."""
 
-    @patch("app.api.routes.devices.get_db")
-    def test_get_device_vulnerabilities(self, mock_get_db, client, sample_device):
+    def test_get_device_vulnerabilities(self, client, mock_db, sample_device):
         """Test getting device vulnerabilities."""
         mock_vuln = MagicMock()
         mock_vuln.to_dict.return_value = {
@@ -231,9 +209,7 @@ class TestGetDeviceVulnerabilities:
         }
         sample_device.vulnerabilities = [mock_vuln]
 
-        mock_db = MagicMock()
         mock_db.query.return_value.filter.return_value.first.return_value = sample_device
-        mock_get_db.return_value = mock_db
 
         response = client.get("/api/v1/devices/device-123/vulnerabilities")
 
@@ -242,12 +218,9 @@ class TestGetDeviceVulnerabilities:
         assert len(data) == 1
         assert data[0]["vuln_type"] == "default_credentials"
 
-    @patch("app.api.routes.devices.get_db")
-    def test_get_device_vulnerabilities_not_found(self, mock_get_db, client):
+    def test_get_device_vulnerabilities_not_found(self, client, mock_db):
         """Test getting vulnerabilities for non-existent device."""
-        mock_db = MagicMock()
         mock_db.query.return_value.filter.return_value.first.return_value = None
-        mock_get_db.return_value = mock_db
 
         response = client.get("/api/v1/devices/nonexistent/vulnerabilities")
 

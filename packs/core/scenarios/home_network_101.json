@@ -1,0 +1,87 @@
+{
+  "id": "home_network_101",
+  "name": "Home Network Basics",
+  "description": "Learn the fundamentals of home network security by exploring a typical home network setup and identifying common vulnerabilities.",
+  "difficulty": "beginner",
+  "learning_objectives": [
+    "Understand the basic components of a home network",
+    "Identify devices on a network",
+    "Recognize common default credential vulnerabilities",
+    "Learn about secure router configuration"
+  ],
+  "devices": [
+    {
+      "id": "router-1",
+      "hostname": "home-router",
+      "ip": "192.168.1.1",
+      "device_type": "router",
+      "os": "RouterOS",
+      "is_gateway": true,
+      "open_ports": [80, 443, 23],
+      "vulnerabilities": [
+        {
+          "vuln_type": "default_credentials",
+          "severity": "high",
+          "service": "http",
+          "port": 80,
+          "hint": "Have you tried the manufacturer's default login?"
+        },
+        {
+          "vuln_type": "open_telnet",
+          "severity": "critical",
+          "service": "telnet",
+          "port": 23,
+          "hint": "This old protocol sends data in plain text"
+        }
+      ]
+    },
+    {
+      "id": "laptop-1",
+      "hostname": "family-laptop",
+      "ip": "192.168.1.100",
+      "device_type": "laptop",
+      "os": "Windows 11",
+      "is_gateway": false,
+      "open_ports": [445, 3389],
+      "vulnerabilities": [
+        {
+          "vuln_type": "open_smb",
+          "severity": "medium",
+          "service": "smb",
+          "port": 445,
+          "hint": "File sharing can be risky if not configured properly"
+        }
+      ]
+    },
+    {
+      "id": "printer-1",
+      "hostname": "home-printer",
+      "ip": "192.168.1.50",
+      "device_type": "printer",
+      "os": "Embedded",
+      "is_gateway": false,
+      "open_ports": [80, 631, 9100],
+      "vulnerabilities": [
+        {
+          "vuln_type": "default_credentials",
+          "severity": "medium",
+          "service": "http",
+          "port": 80,
+          "hint": "Printers often ship with well-known default passwords"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "author": "CyberSec Teaching Tool",
+    "created_at": "2024-12-09",
+    "version": "1.0.0",
+    "tags": ["beginner", "home-network", "fundamentals"],
+    "estimated_time": 15,
+    "prerequisites": []
+  },
+  "success_criteria": {
+    "vulnerabilities_to_find": 4,
+    "minimum_score": 70
+  }
+}

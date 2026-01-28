@@ -183,7 +183,7 @@ class TestFallbackChain:
 
     @pytest.mark.asyncio
     async def test_falls_back_from_ollama_to_hosted(self, service, sample_request):
-        """Should fall back to hosted when Ollama fails."""
+        """Should fall back to hosted when Ollama fails (when prefer_local=False)."""
         hosted_response = ExplanationResponse(
             explanation="Hosted explanation",
             provider=LLMProvider.HOSTED,
@@ -201,10 +201,39 @@ class TestFallbackChain:
         service._hosted.is_available = AsyncMock(return_value=True)
         service._hosted.generate_explanation = AsyncMock(return_value=hosted_response)
 
-        response = await service.get_explanation(sample_request, skip_cache=True)
+        # Pass prefer_local=False to allow fallback to hosted API
+        response = await service.get_explanation(sample_request, skip_cache=True, prefer_local=False)
 
         assert response is not None
         assert response.provider == LLMProvider.HOSTED
+
+    @pytest.mark.asyncio
+    async def test_skips_hosted_when_prefer_local(self, service, sample_request):
+        """Should skip hosted API when prefer_local=True for privacy."""
+        # Ollama available but fails to generate
+        service._ollama.is_available = AsyncMock(return_value=True)
+        service._ollama.generate_explanation = AsyncMock(return_value=None)
+
+        # Hosted is available but should be skipped
+        service._hosted.is_available = AsyncMock(return_value=True)
+        service._hosted.generate_explanation = AsyncMock(
+            return_value=ExplanationResponse(
+                explanation="Should not be used",
+                provider=LLMProvider.HOSTED,
+                topic="default_credentials",
+                cached=False,
+                difficulty_level="beginner",
+                related_topics=[],
+            )
+        )
+
+        # With prefer_local=True (default), should skip hosted and use static
+        response = await service.get_explanation(sample_request, skip_cache=True, prefer_local=True)
+
+        assert response is not None
+        assert response.provider == LLMProvider.STATIC
+        # Verify hosted was never called
+        service._hosted.generate_explanation.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_falls_back_from_hosted_to_static(self, service, sample_request):

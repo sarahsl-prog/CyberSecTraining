@@ -19,6 +19,8 @@ import { DifficultySelector } from './DifficultySelector';
 import { RelatedTopics } from './RelatedTopics';
 import styles from './ExplanationPanel.module.css';
 
+const log = logger.create('ExplanationPanel');
+
 /**
  * Props for ExplanationPanel component.
  */
@@ -68,7 +70,17 @@ export function ExplanationPanel({
   const [explanation, setExplanation] = useState<ExplanationResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [difficulty, setDifficulty] = useState<DifficultyLevel>('beginner');
+
+  // Load default difficulty from settings
+  const getDefaultDifficulty = (): DifficultyLevel => {
+    const saved = localStorage.getItem('cybersec-explanation-detail');
+    if (saved === 'beginner' || saved === 'intermediate' || saved === 'advanced' || saved === 'expert') {
+      return saved as DifficultyLevel;
+    }
+    return 'intermediate';
+  };
+
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>(getDefaultDifficulty());
 
   /**
    * Fetch explanation from the API.
@@ -77,7 +89,7 @@ export function ExplanationPanel({
     setLoading(true);
     setError(null);
 
-    logger.debug('Fetching explanation', { topic, explanationType, difficulty });
+    log.debug('Fetching explanation', { topic, explanationType, difficulty });
 
     try {
       const response = await llmService.getExplanation(
@@ -90,12 +102,17 @@ export function ExplanationPanel({
         skipCache
       );
 
-      setExplanation(response);
-      logger.info('Explanation loaded', { provider: response.provider, cached: response.cached });
+      if (response.success) {
+        setExplanation(response.data);
+        log.info('Explanation loaded', { provider: response.data.provider, cached: response.data.cached });
+      } else {
+        setError(response.error.detail);
+        log.error('Failed to fetch explanation', { error: response.error.detail });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load explanation';
       setError(message);
-      logger.error('Failed to fetch explanation', { error: message });
+      log.error('Failed to fetch explanation', { error: message });
     } finally {
       setLoading(false);
     }

@@ -63,7 +63,8 @@ describe('DeviceNode', () => {
   it('applies selected class when isSelected is true', () => {
     render(<DeviceNode device={mockDevice} isSelected={true} />);
 
-    expect(screen.getByRole('button')).toHaveClass('selected');
+    // CSS modules add hash to class names, check for partial match
+    expect(screen.getByRole('button').className).toMatch(/selected/);
     expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'true');
   });
 
@@ -71,35 +72,38 @@ describe('DeviceNode', () => {
     const offlineDevice = { ...mockDevice, is_up: false };
     render(<DeviceNode device={offlineDevice} />);
 
-    expect(screen.getByRole('button')).toHaveClass('offline');
+    // CSS modules add hash to class names, check for partial match
+    expect(screen.getByRole('button').className).toMatch(/offline/);
   });
 
   it('applies severity classes based on vulnerability count', () => {
     // Critical: 5+
     const criticalDevice = { ...mockDevice, vulnerability_count: 5 };
     const { rerender } = render(<DeviceNode device={criticalDevice} />);
-    expect(screen.getByRole('button')).toHaveClass('severity-critical');
+    // CSS modules add hash to class names, check for partial match
+    expect(screen.getByRole('button').className).toMatch(/severity-critical/);
 
     // High: 3-4
     const highDevice = { ...mockDevice, vulnerability_count: 3 };
     rerender(<DeviceNode device={highDevice} />);
-    expect(screen.getByRole('button')).toHaveClass('severity-high');
+    expect(screen.getByRole('button').className).toMatch(/severity-high/);
 
     // Medium: 1-2
     const mediumDevice = { ...mockDevice, vulnerability_count: 1 };
     rerender(<DeviceNode device={mediumDevice} />);
-    expect(screen.getByRole('button')).toHaveClass('severity-medium');
+    expect(screen.getByRole('button').className).toMatch(/severity-medium/);
   });
 
   it('applies size classes correctly', () => {
     const { rerender } = render(<DeviceNode device={mockDevice} size="sm" />);
-    expect(screen.getByRole('button')).toHaveClass('size-sm');
+    // CSS modules add hash to class names, check for partial match
+    expect(screen.getByRole('button').className).toMatch(/size-sm/);
 
     rerender(<DeviceNode device={mockDevice} size="md" />);
-    expect(screen.getByRole('button')).toHaveClass('size-md');
+    expect(screen.getByRole('button').className).toMatch(/size-md/);
 
     rerender(<DeviceNode device={mockDevice} size="lg" />);
-    expect(screen.getByRole('button')).toHaveClass('size-lg');
+    expect(screen.getByRole('button').className).toMatch(/size-lg/);
   });
 
   it('calls onClick when clicked', () => {

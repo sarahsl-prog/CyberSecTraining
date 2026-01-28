@@ -1,0 +1,150 @@
+{
+  "id": "small_office_audit",
+  "name": "Small Office Security Audit",
+  "description": "Conduct a comprehensive security audit of a small office network. Identify vulnerabilities across servers, workstations, and network devices.",
+  "difficulty": "advanced",
+  "learning_objectives": [
+    "Perform a systematic network security audit",
+    "Identify vulnerabilities in server configurations",
+    "Understand database and file server security",
+    "Learn about remote access security best practices"
+  ],
+  "devices": [
+    {
+      "id": "router-1",
+      "hostname": "office-gateway",
+      "ip": "10.0.0.1",
+      "device_type": "router",
+      "os": "pfSense",
+      "is_gateway": true,
+      "open_ports": [22, 80, 443],
+      "vulnerabilities": [
+        {
+          "vuln_type": "outdated_firmware",
+          "severity": "high",
+          "service": "system",
+          "hint": "When was this device last updated?"
+        }
+      ]
+    },
+    {
+      "id": "server-1",
+      "hostname": "file-server",
+      "ip": "10.0.0.10",
+      "device_type": "server",
+      "os": "Windows Server 2019",
+      "is_gateway": false,
+      "open_ports": [21, 22, 80, 139, 445, 3389],
+      "vulnerabilities": [
+        {
+          "vuln_type": "open_ftp",
+          "severity": "high",
+          "service": "ftp",
+          "port": 21,
+          "hint": "An old file transfer protocol is running"
+        },
+        {
+          "vuln_type": "open_smb",
+          "severity": "medium",
+          "service": "smb",
+          "port": 445,
+          "hint": "File sharing is exposed to the network"
+        },
+        {
+          "vuln_type": "open_rdp",
+          "severity": "high",
+          "service": "rdp",
+          "port": 3389,
+          "hint": "Remote desktop is enabled without additional protection"
+        }
+      ]
+    },
+    {
+      "id": "server-2",
+      "hostname": "db-server",
+      "ip": "10.0.0.11",
+      "device_type": "server",
+      "os": "Ubuntu 22.04",
+      "is_gateway": false,
+      "open_ports": [22, 3306, 5432],
+      "vulnerabilities": [
+        {
+          "vuln_type": "open_database",
+          "severity": "critical",
+          "service": "mysql",
+          "port": 3306,
+          "hint": "Is the database exposed to the entire network?"
+        },
+        {
+          "vuln_type": "default_credentials",
+          "severity": "critical",
+          "service": "postgresql",
+          "port": 5432,
+          "hint": "Database authentication should be properly configured"
+        }
+      ]
+    },
+    {
+      "id": "workstation-1",
+      "hostname": "reception-pc",
+      "ip": "10.0.0.100",
+      "device_type": "computer",
+      "os": "Windows 10",
+      "is_gateway": false,
+      "open_ports": [135, 139, 445, 5900],
+      "vulnerabilities": [
+        {
+          "vuln_type": "open_vnc",
+          "severity": "high",
+          "service": "vnc",
+          "port": 5900,
+          "hint": "Remote access software with weak encryption"
+        },
+        {
+          "vuln_type": "unnecessary_services",
+          "severity": "low",
+          "service": "netbios",
+          "port": 139,
+          "hint": "Legacy networking services that may not be needed"
+        }
+      ]
+    },
+    {
+      "id": "printer-1",
+      "hostname": "office-printer",
+      "ip": "10.0.0.50",
+      "device_type": "printer",
+      "os": "Embedded",
+      "is_gateway": false,
+      "open_ports": [80, 515, 631, 9100],
+      "vulnerabilities": [
+        {
+          "vuln_type": "default_credentials",
+          "severity": "medium",
+          "service": "http",
+          "port": 80,
+          "hint": "Office equipment often uses default passwords"
+        },
+        {
+          "vuln_type": "unencrypted_http",
+          "severity": "low",
+          "service": "http",
+          "port": 80,
+          "hint": "The management interface lacks encryption"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "author": "CyberSec Teaching Tool",
+    "created_at": "2024-12-09",
+    "version": "1.0.0",
+    "tags": ["advanced", "office", "audit", "servers", "comprehensive"],
+    "estimated_time": 45,
+    "prerequisites": ["home_network_101", "router_hardening"]
+  },
+  "success_criteria": {
+    "vulnerabilities_to_find": 10,
+    "minimum_score": 80
+  }
+}

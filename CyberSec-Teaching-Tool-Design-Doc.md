@@ -300,6 +300,99 @@ def scan_network():
 - Device fingerprinting logic (OS detection, service banners)
 - "Safe mode" option (common ports only, not aggressive scan)
 
+### 5.2 Training vs Live Modes
+
+**Decision:** Support two distinct operating modes to balance learning safety with real-world applicability
+
+#### Training Mode (Default)
+
+**Purpose:** Safe practice environment for learning without risk
+
+**Implementation:**
+- Uses `FakeNetworkGenerator` to create simulated scan results
+- Deterministic generation based on IP range hash (same input → same output)
+- Generates 3-15 realistic fake devices with appropriate:
+  - Device types (router, printer, laptop, NAS, IoT)
+  - Open ports based on device type
+  - Service banners and version information
+  - MAC addresses with realistic vendor prefixes
+  - OS fingerprints
+- Completes instantly (<1 second) with simulated progress for UX
+- No nmap dependency required
+- Works on any system without special permissions
+
+**Rationale:**
+- Enables classroom environments where real scanning isn't permitted
+- Consistent results allow creating reproducible lesson plans
+- No security/legal concerns
+- No network overhead or permissions issues
+- Students can practice without fear of mistakes
+
+**Use Cases:**
+- Educational institutions
+- Self-paced online learning
+- Testing the application
+- Demonstrations
+- Environments where nmap unavailable
+
+#### Live Mode
+
+**Purpose:** Real network scanning for practical security audits
+
+**Implementation:**
+- Uses `NmapScanner` for actual network discovery (existing functionality)
+- Performs real nmap scans on specified networks
+- Returns actual discovered devices with real data
+- Requires nmap installation and proper system permissions
+- All existing safety guardrails remain (private networks only, user consent, rate limiting)
+
+**Rationale:**
+- Necessary for home network security audits
+- Teaches how real security tools work
+- Validates learning against actual systems
+- Advanced users need real-world practice
+
+**Use Cases:**
+- Personal home network audits
+- Advanced users with their own lab networks
+- Validating security configurations
+- Professional security training
+
+#### Mode Switching
+
+**UI/UX:**
+- Persistent banner across top of application indicates current mode:
+  - Training: Blue banner "🎓 Training Mode Active"
+  - Live: Orange banner "⚡ Live Scanning Mode Active"
+- Settings page provides mode toggle with radio buttons
+- Switching to Live mode requires explicit confirmation dialog
+- Mode persists across sessions (stored in database + localStorage)
+
+**Architecture:**
+```python
+class ScanOrchestrator:
+    def _get_scanner(self):
+        mode = self._get_application_mode()  # from database
+        if mode == "live":
+            return NmapScanner(self.settings)
+        else:  # training mode (default)
+            return FakeNetworkGenerator(self.settings)
+```
+
+**Scanner Abstraction:**
+Both `FakeNetworkGenerator` and `NmapScanner` implement the same interface:
+- `scan_network(target, scan_type) -> ScanResult`
+- `is_available() -> bool`
+
+This ensures the frontend receives consistent data structures regardless of mode, requiring zero frontend changes for result handling.
+
+**Benefits:**
+- Single codebase supports both use cases
+- Clear mode indication reduces confusion
+- Explicit confirmation prevents accidental real scans
+- Deterministic training mode enables curriculum development
+- Easy to add more scanner types in future (cloud scanning, API-based, etc.)
+
 ---
 
 ## 6. Accessibility Requirements

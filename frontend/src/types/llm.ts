@@ -5,6 +5,8 @@
  * and AI-powered educational content.
  */
 
+import type { DifficultyLevel } from './scenario';
+
 /**
  * Types of explanations available from the LLM service.
  */
@@ -19,11 +21,6 @@ export type ExplanationType =
  * LLM provider types.
  */
 export type LLMProvider = 'ollama' | 'hosted' | 'static';
-
-/**
- * Difficulty levels for explanations.
- */
-export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
 
 /**
  * Request for an LLM explanation.
@@ -87,4 +84,5 @@ export const DIFFICULTY_DESCRIPTIONS: Record<DifficultyLevel, string> = {
   beginner: 'Simple explanations for newcomers',
   intermediate: 'Technical details for learners',
   advanced: 'In-depth analysis for professionals',
+  expert: 'Expert-level technical deep dives',
 };

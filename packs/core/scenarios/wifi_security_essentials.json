@@ -1,0 +1,53 @@
+{
+  "id": "wifi_security_essentials",
+  "title": "WiFi Security Essentials",
+  "description": "Master the basics of securing your wireless network.",
+  "difficulty": "beginner",
+  "estimated_time": 25,
+  "tags": ["wifi", "wireless", "encryption"],
+  "prerequisites": ["Basic networking knowledge"],
+  "learning_objectives": [
+    "Understand WiFi encryption standards",
+    "Learn to secure your WiFi network",
+    "Know how to change WiFi passwords",
+    "Recognize weak WiFi security"
+  ],
+  "steps": [
+    {
+      "id": "check_encryption_type",
+      "title": "Check Your WiFi Encryption",
+      "description": "Verify what type of encryption your WiFi network is using.",
+      "type": "instruction",
+      "content": "1. Connect to your WiFi network\n2. Open Command Prompt/Terminal\n3. Run: netsh wlan show interfaces (Windows) or /System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I (macOS)\n4. Look for 'Authentication' and 'Cipher'",
+      "hints": ["WPA3 is best, WPA2 is acceptable, WEP is insecure"],
+      "points": 10
+    },
+    {
+      "id": "change_wifi_password",
+      "title": "Change WiFi Password",
+      "description": "Update your WiFi password to something strong.",
+      "type": "instruction",
+      "content": "1. Access your router admin panel\n2. Find the WiFi/Wireless settings\n3. Change the WiFi password (pre-shared key)\n4. Use WPA3 encryption if available\n5. Save and reconnect devices",
+      "points": 20
+    },
+    {
+      "id": "disable_wps",
+      "title": "Disable WPS",
+      "description": "Turn off WiFi Protected Setup as it can be vulnerable.",
+      "type": "instruction",
+      "content": "1. In router admin panel, find WPS settings\n2. Disable WPS (WiFi Protected Setup)\n3. This prevents brute force attacks on WPS PIN",
+      "points": 15
+    },
+    {
+      "id": "change_network_name",
+      "title": "Change Network Name (SSID)",
+      "description": "Change your WiFi network name to something non-identifying.",
+      "type": "instruction",
+      "content": "1. In router settings, find WiFi network name (SSID)\n2. Change it from the default (like 'NETGEAR-123')\n3. Don't include personal information\n4. Save changes",
+      "points": 10
+    }
+  ],
+  "related_vulnerabilities": ["weak_wifi", "default_credentials"],
+  "author": "CyberSec Teaching Tool",
+  "version": "1.0.0"
+}

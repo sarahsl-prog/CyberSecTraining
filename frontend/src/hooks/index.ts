@@ -9,3 +9,4 @@ export * from './useAsync';
 export * from './useNetwork';
 export * from './useDevices';
 export * from './useVulnerabilities';
+export * from './useScenarios';

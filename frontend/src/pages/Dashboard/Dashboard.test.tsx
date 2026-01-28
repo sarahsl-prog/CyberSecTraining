@@ -20,7 +20,12 @@ import {
  */
 function TestWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <AccessibilityProvider>
         <ThemeProvider>{children}</ThemeProvider>
       </AccessibilityProvider>

@@ -4,14 +4,22 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AccessibilityProvider } from '@/context/AccessibilityContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { ModeProvider } from '@/context/ModeContext';
 import '@/styles/global.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <AccessibilityProvider>
         <ThemeProvider>
-          <App />
+          <ModeProvider>
+            <App />
+          </ModeProvider>
         </ThemeProvider>
       </AccessibilityProvider>
     </BrowserRouter>

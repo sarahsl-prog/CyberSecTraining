@@ -5,7 +5,7 @@
  */
 
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { vi, beforeEach } from 'vitest';
 
 // Mock fetch globally
 global.fetch = vi.fn();
@@ -42,6 +42,42 @@ const localStorageMock = {
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
+
+// Mock HTMLDialogElement (not fully supported in jsdom)
+if (typeof HTMLDialogElement === 'undefined') {
+  (global as any).HTMLDialogElement = class HTMLDialogElement extends HTMLElement {
+    open = false;
+    returnValue = '';
+
+    showModal() {
+      this.open = true;
+    }
+
+    close(returnValue?: string) {
+      this.open = false;
+      if (returnValue !== undefined) {
+        this.returnValue = returnValue;
+      }
+    }
+
+    show() {
+      this.open = true;
+    }
+  };
+} else {
+  // Polyfill methods if they don't exist
+  if (!HTMLDialogElement.prototype.showModal) {
+    HTMLDialogElement.prototype.showModal = function() {
+      this.setAttribute('open', '');
+    };
+  }
+
+  if (!HTMLDialogElement.prototype.close) {
+    HTMLDialogElement.prototype.close = function() {
+      this.removeAttribute('open');
+    };
+  }
+}
 
 // Reset mocks between tests
 beforeEach(() => {

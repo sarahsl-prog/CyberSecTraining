@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Dashboard } from '@/pages/Dashboard';
 import { NetworkScan } from '@/pages/NetworkScan';
+import { Scenarios } from '@/pages/Scenarios';
 import { Settings } from '@/pages/Settings';
 
 /**
@@ -21,10 +22,12 @@ function App() {
         {/* Main pages */}
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="scan" element={<NetworkScan />} />
+        <Route path="scenarios" element={<Scenarios />} />
+        <Route path="scenarios/:scenarioId" element={<PlaceholderPage title="Scenario Details" />} />
+        <Route path="scenarios/:scenarioId/play" element={<PlaceholderPage title="Scenario Player" />} />
         <Route path="settings" element={<Settings />} />
 
         {/* Placeholder pages for future implementation */}
-        <Route path="scenarios" element={<PlaceholderPage title="Scenarios" />} />
         <Route path="community" element={<PlaceholderPage title="Community" />} />
       </Route>
     </Routes>

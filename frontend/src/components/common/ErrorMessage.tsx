@@ -25,6 +25,8 @@ export interface ErrorMessageProps extends HTMLAttributes<HTMLDivElement> {
   variant?: 'inline' | 'banner' | 'page';
   /** Custom icon */
   icon?: ReactNode;
+  /** Compact display mode */
+  compact?: boolean;
 }
 
 /**
@@ -46,6 +48,7 @@ export function ErrorMessage({
   retryText = 'Try again',
   variant = 'inline',
   icon,
+  compact,
   className,
   ...props
 }: ErrorMessageProps) {
@@ -70,7 +73,12 @@ export function ErrorMessage({
   return (
     <div
       role="alert"
-      className={clsx(styles.container, styles[`variant-${variant}`], className)}
+      className={clsx(
+        styles.container,
+        styles[`variant-${variant}`],
+        compact && styles.compact,
+        className
+      )}
       {...props}
     >
       <div className={styles.iconWrapper} aria-hidden="true">

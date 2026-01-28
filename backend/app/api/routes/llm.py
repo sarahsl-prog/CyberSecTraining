@@ -34,13 +34,17 @@ async def get_explanation(
         default=False,
         description="Skip cache lookup (force fresh generation)"
     ),
+    prefer_local: bool = Query(
+        default=True,
+        description="Prefer local AI for privacy (skips hosted API)"
+    ),
 ) -> ExplanationResponse:
     """
     Generate an explanation for a vulnerability or security concept.
 
     The service uses a fallback chain:
     1. Local Ollama (if available)
-    2. Hosted API (if configured)
+    2. Hosted API (if configured and prefer_local=false)
     3. Static knowledge base (always available)
 
     Results are cached to improve performance.
@@ -51,12 +55,13 @@ async def get_explanation(
             "topic": request.topic,
             "type": request.explanation_type.value,
             "difficulty": request.difficulty_level,
+            "prefer_local": prefer_local,
         }
     )
 
     try:
         service = get_llm_service()
-        response = await service.get_explanation(request, skip_cache=skip_cache)
+        response = await service.get_explanation(request, skip_cache=skip_cache, prefer_local=prefer_local)
 
         logger.info(
             "Explanation generated",
@@ -95,6 +100,10 @@ async def explain_vulnerability(
         max_length=500,
         description="Additional context about the vulnerability"
     ),
+    prefer_local: bool = Query(
+        default=True,
+        description="Prefer local AI for privacy (skips hosted API)"
+    ),
 ) -> ExplanationResponse:
     """
     Shortcut endpoint to explain a vulnerability type.
@@ -110,7 +119,7 @@ async def explain_vulnerability(
     )
 
     service = get_llm_service()
-    return await service.get_explanation(request)
+    return await service.get_explanation(request, prefer_local=prefer_local)
 
 
 @router.get(
@@ -131,6 +140,10 @@ async def explain_remediation(
         max_length=500,
         description="Additional context about the environment"
     ),
+    prefer_local: bool = Query(
+        default=True,
+        description="Prefer local AI for privacy (skips hosted API)"
+    ),
 ) -> ExplanationResponse:
     """
     Shortcut endpoint to get remediation instructions.
@@ -145,7 +158,7 @@ async def explain_remediation(
     )
 
     service = get_llm_service()
-    return await service.get_explanation(request)
+    return await service.get_explanation(request, prefer_local=prefer_local)
 
 
 @router.get(
@@ -161,6 +174,10 @@ async def explain_concept(
         pattern="^(beginner|intermediate|advanced)$",
         description="Explanation difficulty level"
     ),
+    prefer_local: bool = Query(
+        default=True,
+        description="Prefer local AI for privacy (skips hosted API)"
+    ),
 ) -> ExplanationResponse:
     """
     Shortcut endpoint to explain a security concept.
@@ -174,7 +191,7 @@ async def explain_concept(
     )
 
     service = get_llm_service()
-    return await service.get_explanation(request)
+    return await service.get_explanation(request, prefer_local=prefer_local)
 
 
 @router.get(

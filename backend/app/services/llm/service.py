@@ -72,6 +72,7 @@ class LLMService:
         self,
         request: ExplanationRequest,
         skip_cache: bool = False,
+        prefer_local: bool = True,
     ) -> ExplanationResponse:
         """
         Get an explanation for the given request.
@@ -81,6 +82,7 @@ class LLMService:
         Args:
             request: The explanation request
             skip_cache: If True, bypass cache lookup (but still cache result)
+            prefer_local: If True, skip hosted API for privacy (Ollama -> Static only)
 
         Returns:
             ExplanationResponse with the generated explanation
@@ -91,6 +93,7 @@ class LLMService:
                 "topic": request.topic,
                 "type": request.explanation_type.value,
                 "skip_cache": skip_cache,
+                "prefer_local": prefer_local,
             }
         )
 
@@ -104,8 +107,12 @@ class LLMService:
                 )
                 return cached
 
+        # Filter providers based on preference
+        # If prefer_local is True, skip hosted API for privacy
+        providers = [p for p in self._providers if not (prefer_local and p.provider_type == LLMProvider.HOSTED)]
+
         # Try each provider in order
-        for provider in self._providers:
+        for provider in providers:
             logger.debug(
                 f"Trying provider: {provider.provider_type.value}",
                 extra={"topic": request.topic}

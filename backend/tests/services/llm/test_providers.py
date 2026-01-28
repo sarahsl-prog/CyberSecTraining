@@ -4,6 +4,7 @@ Tests for LLM providers.
 
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
+from contextlib import asynccontextmanager
 
 from app.services.llm.models import (
     ExplanationRequest,
@@ -13,6 +14,23 @@ from app.services.llm.models import (
 from app.services.llm.providers.static import StaticKnowledgeProvider
 from app.services.llm.providers.ollama import OllamaProvider
 from app.services.llm.providers.hosted import HostedAPIProvider
+
+
+@asynccontextmanager
+async def mock_async_client(mock_get=None, mock_post=None):
+    """
+    Mock async context manager for httpx.AsyncClient.
+
+    This properly handles the async context manager protocol (__aenter__/__aexit__)
+    to prevent resource leaks in tests.
+    """
+    mock_client = AsyncMock()
+    if mock_get:
+        mock_client.get = mock_get
+    if mock_post:
+        mock_client.post = mock_post
+
+    yield mock_client
 
 
 @pytest.fixture
@@ -147,8 +165,9 @@ class TestOllamaProvider:
             "models": [{"name": "llama3.2:latest"}]
         }
 
-        with patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = mock_response
+        mock_get = AsyncMock(return_value=mock_response)
+
+        with patch("httpx.AsyncClient", return_value=mock_async_client(mock_get=mock_get)):
             result = await provider.is_available()
             assert result is True
 
@@ -157,8 +176,9 @@ class TestOllamaProvider:
         """Should return False when cannot connect to Ollama."""
         import httpx
 
-        with patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
-            mock_get.side_effect = httpx.ConnectError("Connection refused")
+        mock_get = AsyncMock(side_effect=httpx.ConnectError("Connection refused"))
+
+        with patch("httpx.AsyncClient", return_value=mock_async_client(mock_get=mock_get)):
             result = await provider.is_available()
             assert result is False
 
@@ -173,8 +193,9 @@ class TestOllamaProvider:
             "response": "This is an explanation about default credentials."
         }
 
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
-            mock_post.return_value = mock_response
+        mock_post = AsyncMock(return_value=mock_response)
+
+        with patch("httpx.AsyncClient", return_value=mock_async_client(mock_post=mock_post)):
             response = await provider.generate_explanation(sample_vulnerability_request)
 
             assert response is not None
@@ -188,8 +209,9 @@ class TestOllamaProvider:
         mock_response.status_code = 500
         mock_response.text = "Internal server error"
 
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
-            mock_post.return_value = mock_response
+        mock_post = AsyncMock(return_value=mock_response)
+
+        with patch("httpx.AsyncClient", return_value=mock_async_client(mock_post=mock_post)):
             response = await provider.generate_explanation(sample_vulnerability_request)
             assert response is None
 
@@ -222,8 +244,9 @@ class TestHostedAPIProvider:
         mock_response = MagicMock()
         mock_response.status_code = 200
 
-        with patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = mock_response
+        mock_get = AsyncMock(return_value=mock_response)
+
+        with patch("httpx.AsyncClient", return_value=mock_async_client(mock_get=mock_get)):
             result = await provider.is_available()
             assert result is True
 
@@ -233,8 +256,9 @@ class TestHostedAPIProvider:
         mock_response = MagicMock()
         mock_response.status_code = 401
 
-        with patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = mock_response
+        mock_get = AsyncMock(return_value=mock_response)
+
+        with patch("httpx.AsyncClient", return_value=mock_async_client(mock_get=mock_get)):
             result = await provider.is_available()
             assert result is False
 
@@ -253,8 +277,9 @@ class TestHostedAPIProvider:
             }]
         }
 
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
-            mock_post.return_value = mock_response
+        mock_post = AsyncMock(return_value=mock_response)
+
+        with patch("httpx.AsyncClient", return_value=mock_async_client(mock_post=mock_post)):
             response = await provider.generate_explanation(sample_vulnerability_request)
 
             assert response is not None

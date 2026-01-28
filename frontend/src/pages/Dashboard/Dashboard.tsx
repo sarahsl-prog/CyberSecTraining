@@ -30,7 +30,7 @@ export function Dashboard() {
     useScanHistory({ page_size: 5 });
   const { summary, isLoading: summaryLoading, error: summaryError, refetch: refetchSummary } =
     useVulnerabilitySummary();
-  const { devices, total: deviceCount, isLoading: devicesLoading } =
+  const { total: deviceCount, isLoading: devicesLoading } =
     useDeviceList({ page_size: 1 });
 
   log.debug('Dashboard rendering', {

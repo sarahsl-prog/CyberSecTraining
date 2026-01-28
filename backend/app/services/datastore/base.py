@@ -117,6 +117,99 @@ class DataStore(ABC):
         """
         pass
 
+    # ==================== Scan History ====================
+
+    @abstractmethod
+    def save_scan(
+        self,
+        user_id: str,
+        scan_id: str,
+        scan_type: str,
+        status: str,
+        target_range: Optional[str] = None,
+        port_range: Optional[str] = None,
+        started_at: Optional[Any] = None,
+        completed_at: Optional[Any] = None,
+        progress: float = 0.0,
+        scanned_hosts: int = 0,
+        total_hosts: int = 0,
+        results_summary: Optional[str] = None,
+    ) -> None:
+        """Save or update a scan record.
+
+        Args:
+            user_id: User identifier ("local" for single-user mode)
+            scan_id: Unique scan identifier
+            scan_type: Type of scan (quick, deep, discovery, custom)
+            status: Scan status (pending, running, completed, failed, cancelled)
+            target_range: Network range scanned (e.g., "192.168.1.0/24")
+            port_range: Port range scanned (e.g., "1-1024")
+            started_at: Scan start timestamp
+            completed_at: Scan completion timestamp
+            progress: Scan progress percentage (0.0-100.0)
+            scanned_hosts: Number of hosts scanned
+            total_hosts: Total hosts to scan
+            results_summary: JSON string of scan results
+        """
+        pass
+
+    @abstractmethod
+    def get_scan(self, user_id: str, scan_id: str) -> Optional[dict[str, Any]]:
+        """Get a scan record by ID.
+
+        Args:
+            user_id: User identifier
+            scan_id: Unique scan identifier
+
+        Returns:
+            Scan data dict or None if not found
+        """
+        pass
+
+    @abstractmethod
+    def list_scans(
+        self,
+        user_id: str,
+        limit: int = 10,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        """List scan records for a user.
+
+        Args:
+            user_id: User identifier
+            limit: Maximum number of scans to return
+            offset: Number of scans to skip
+
+        Returns:
+            List of scan data dicts, most recent first
+        """
+        pass
+
+    @abstractmethod
+    def delete_scan(self, user_id: str, scan_id: str) -> bool:
+        """Delete a scan record.
+
+        Args:
+            user_id: User identifier
+            scan_id: Unique scan identifier
+
+        Returns:
+            True if deleted, False if not found
+        """
+        pass
+
+    @abstractmethod
+    def count_scans(self, user_id: str) -> int:
+        """Get total count of scans for a user.
+
+        Args:
+            user_id: User identifier
+
+        Returns:
+            Total number of scans
+        """
+        pass
+
     # ==================== Leaderboard (Future) ====================
 
     @abstractmethod

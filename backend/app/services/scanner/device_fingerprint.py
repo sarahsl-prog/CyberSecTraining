@@ -437,9 +437,21 @@ class DeviceFingerprinter:
         if self._matches_signature("camera", open_port_numbers, services):
             return DeviceType.CAMERA
 
-        # Check for NAS
+        # Check for workstation/desktop (before NAS, as workstations may have SMB)
+        # RDP or VNC are strong indicators of a workstation, not NAS
+        if 3389 in open_port_numbers or 5900 in open_port_numbers:
+            return DeviceType.WORKSTATION
+
+        # Check for NAS (file servers without remote desktop)
         if self._matches_signature("nas", open_port_numbers, services):
             return DeviceType.NAS
+
+        # Additional workstation check for Windows file sharing without NAS indicators
+        workstation_ports = {135, 139, 445}
+        if open_port_numbers & workstation_ports:
+            # If it has Windows-specific NetBIOS ports without other server services, it's likely a workstation
+            if 135 in open_port_numbers:
+                return DeviceType.WORKSTATION
 
         # Check for IoT
         if self._matches_signature("iot", open_port_numbers, services):
@@ -455,8 +467,7 @@ class DeviceFingerprinter:
         if len(open_port_numbers & server_ports) >= 3:
             return DeviceType.SERVER
 
-        # Check for workstation/desktop
-        workstation_ports = {135, 139, 445, 3389, 5900}
+        # Fallback workstation check (any SMB without other indicators)
         if open_port_numbers & workstation_ports:
             return DeviceType.WORKSTATION
 

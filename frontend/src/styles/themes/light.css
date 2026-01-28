@@ -1,5 +1,5 @@
 /* Light Theme - Default */
-:root,
+:root:not([data-color-mode]),
 [data-color-mode='light'] {
   --color-background: #ffffff;
   --color-foreground: #1a1a2e;

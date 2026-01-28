@@ -477,6 +477,99 @@ flowchart TD
     style Success fill:#e1f5e1
 ```
 
+## Application Mode Selection Flow
+
+```mermaid
+flowchart TD
+    Start([App Launch]) --> CheckMode[Check Current Mode<br/>from Database]
+
+    CheckMode --> DefaultMode{Mode Set?}
+    DefaultMode -->|No| SetTraining[Default to Training Mode]
+    DefaultMode -->|Yes| LoadMode[Load Saved Mode]
+
+    SetTraining --> ShowBanner[Display Mode Banner]
+    LoadMode --> ShowBanner
+
+    ShowBanner --> ModeType{Current Mode?}
+
+    ModeType -->|Training| TrainingBanner["🎓 Training Mode Active"<br/>Blue Banner]
+    ModeType -->|Live| LiveBanner["⚡ Live Scanning Mode Active"<br/>Orange Banner]
+
+    TrainingBanner --> AppReady[Application Ready]
+    LiveBanner --> AppReady
+
+    AppReady --> UserNav{User Navigation}
+
+    UserNav -->|Use App| NormalFlow[Normal App Usage]
+    UserNav -->|Go to Settings| SettingsPage[Settings Page]
+
+    SettingsPage --> ViewMode[View Current Mode<br/>with Radio Buttons]
+
+    ViewMode --> UserChoice{User Action}
+
+    UserChoice -->|Keep Current| CloseSettings[Close Settings]
+    UserChoice -->|Change Mode| ClickMode[Click Different Mode]
+
+    ClickMode --> NewMode{New Mode?}
+
+    NewMode -->|Training| ConfirmTraining[No Confirmation Needed]
+    NewMode -->|Live| ShowWarning[Show Warning Dialog]
+
+    ShowWarning --> WarningText["⚠️ Enable Live Network Scanning?<br/><br/>Live Mode performs REAL network scans.<br/><br/>Only enable if you:<br/>• Own the network<br/>• Have explicit permission<br/>• Understand security implications<br/><br/>Training Mode recommended for learning."]
+
+    WarningText --> WarningChoice{User Choice}
+
+    WarningChoice -->|Cancel| ViewMode
+    WarningChoice -->|Enable Live| SaveLive[Save Mode to Database]
+
+    ConfirmTraining --> SaveTraining[Save Mode to Database]
+
+    SaveLive --> UpdateBanner[Update Banner to Live]
+    SaveTraining --> UpdateBanner2[Update Banner to Training]
+
+    UpdateBanner --> AnnounceChange["Screen Reader:<br/>'Application mode changed to Live.<br/>Real network scanning enabled.'"]
+    UpdateBanner2 --> AnnounceChange2["Screen Reader:<br/>'Application mode changed to Training.<br/>Safe practice mode enabled.'"]
+
+    AnnounceChange --> CloseSettings
+    AnnounceChange2 --> CloseSettings
+
+    CloseSettings --> AppReady
+    NormalFlow --> PerformScan{User Starts Scan}
+
+    PerformScan -->|Training Mode| FakeScan[Use FakeNetworkGenerator]
+    PerformScan -->|Live Mode| RealScan[Use NmapScanner]
+
+    FakeScan --> QuickResults[Results in <1 second<br/>Simulated Devices]
+    RealScan --> SlowResults[Real Scan<br/>30s - 5min]
+
+    QuickResults --> DisplayResults[Display Network Dashboard]
+    SlowResults --> DisplayResults
+
+    DisplayResults --> AppReady
+
+    style TrainingBanner fill:#4A90E2,stroke:#2E5C8A,stroke-width:3px,color:#fff
+    style LiveBanner fill:#E67E22,stroke:#A0522D,stroke-width:3px,color:#fff
+    style WarningText fill:#FFF3CD,stroke:#856404,stroke-width:2px
+    style FakeScan fill:#90EE90,stroke:#228B22,stroke-width:2px
+    style RealScan fill:#FFB6C1,stroke:#DC143C,stroke-width:2px
+```
+
+### Mode Flow Highlights
+
+**Key Features:**
+- **Default Safe**: Application starts in Training Mode by default
+- **Persistent Banner**: Current mode always visible at top of app
+- **Explicit Confirmation**: Switching to Live mode requires user confirmation
+- **Seamless UX**: Same interface for both modes, just different data sources
+- **Screen Reader Support**: Mode changes announced to assistive technologies
+
+**Safety Mechanisms:**
+- Training mode selected by default on first launch
+- Clear visual distinction between modes (different colored banners)
+- Warning dialog prevents accidental activation of live scanning
+- Mode persists across sessions but can be changed anytime
+- No mid-scan mode switching (prevents confusion)
+
 ---
 
 ## How to Use These Diagrams

@@ -7,36 +7,50 @@
 import { apiClient } from './api-client';
 import { logger } from './logger';
 import type {
+  ApiResult,
   ExplanationRequest,
   ExplanationResponse,
-  ExplanationType,
   DifficultyLevel,
   LLMHealthStatus,
 } from '@/types';
+
+const log = logger.create('LLMService');
+
+/**
+ * Get the "use local AI" preference from localStorage.
+ */
+function getPreferLocalAI(): boolean {
+  const saved = localStorage.getItem('cybersec-use-local-ai');
+  // Default to true if not set
+  return saved === null || saved === 'true';
+}
 
 /**
  * Get an explanation for a topic.
  *
  * @param request - The explanation request
  * @param skipCache - Whether to skip cache lookup
- * @returns The generated explanation
+ * @returns The generated explanation wrapped in ApiResult
  */
 export async function getExplanation(
   request: ExplanationRequest,
   skipCache = false
-): Promise<ExplanationResponse> {
-  logger.debug('Requesting explanation', { topic: request.topic, type: request.explanation_type });
+): Promise<ApiResult<ExplanationResponse>> {
+  log.debug('Requesting explanation', { topic: request.topic, type: request.explanation_type });
 
+  const preferLocal = getPreferLocalAI();
   const response = await apiClient.post<ExplanationResponse>(
-    `/llm/explain?skip_cache=${skipCache}`,
+    `/llm/explain?skip_cache=${skipCache}&prefer_local=${preferLocal}`,
     request
   );
 
-  logger.info('Explanation received', {
-    topic: response.topic,
-    provider: response.provider,
-    cached: response.cached,
-  });
+  if (response.success) {
+    log.info('Explanation received', {
+      topic: response.data.topic,
+      provider: response.data.provider,
+      cached: response.data.cached,
+    });
+  }
 
   return response;
 }
@@ -47,16 +61,17 @@ export async function getExplanation(
  * @param vulnType - The vulnerability type
  * @param difficulty - The difficulty level
  * @param context - Optional additional context
- * @returns The generated explanation
+ * @returns The generated explanation wrapped in ApiResult
  */
 export async function explainVulnerability(
   vulnType: string,
   difficulty: DifficultyLevel = 'beginner',
   context?: string
-): Promise<ExplanationResponse> {
-  logger.debug('Requesting vulnerability explanation', { vulnType, difficulty });
+): Promise<ApiResult<ExplanationResponse>> {
+  log.debug('Requesting vulnerability explanation', { vulnType, difficulty });
 
-  const params = new URLSearchParams({ difficulty });
+  const preferLocal = getPreferLocalAI();
+  const params = new URLSearchParams({ difficulty, prefer_local: String(preferLocal) });
   if (context) {
     params.append('context', context);
   }
@@ -72,16 +87,17 @@ export async function explainVulnerability(
  * @param vulnType - The vulnerability type
  * @param difficulty - The difficulty level
  * @param context - Optional additional context
- * @returns The remediation explanation
+ * @returns The remediation explanation wrapped in ApiResult
  */
 export async function explainRemediation(
   vulnType: string,
   difficulty: DifficultyLevel = 'beginner',
   context?: string
-): Promise<ExplanationResponse> {
-  logger.debug('Requesting remediation explanation', { vulnType, difficulty });
+): Promise<ApiResult<ExplanationResponse>> {
+  log.debug('Requesting remediation explanation', { vulnType, difficulty });
 
-  const params = new URLSearchParams({ difficulty });
+  const preferLocal = getPreferLocalAI();
+  const params = new URLSearchParams({ difficulty, prefer_local: String(preferLocal) });
   if (context) {
     params.append('context', context);
   }
@@ -96,15 +112,16 @@ export async function explainRemediation(
  *
  * @param concept - The concept to explain
  * @param difficulty - The difficulty level
- * @returns The concept explanation
+ * @returns The concept explanation wrapped in ApiResult
  */
 export async function explainConcept(
   concept: string,
   difficulty: DifficultyLevel = 'beginner'
-): Promise<ExplanationResponse> {
-  logger.debug('Requesting concept explanation', { concept, difficulty });
+): Promise<ApiResult<ExplanationResponse>> {
+  log.debug('Requesting concept explanation', { concept, difficulty });
 
-  const params = new URLSearchParams({ difficulty });
+  const preferLocal = getPreferLocalAI();
+  const params = new URLSearchParams({ difficulty, prefer_local: String(preferLocal) });
 
   return apiClient.get<ExplanationResponse>(
     `/llm/explain/concept/${encodeURIComponent(concept)}?${params}`
@@ -114,37 +131,37 @@ export async function explainConcept(
 /**
  * Check the health status of LLM providers.
  *
- * @returns The health status
+ * @returns The health status wrapped in ApiResult
  */
-export async function getLLMHealth(): Promise<LLMHealthStatus> {
+export async function getLLMHealth(): Promise<ApiResult<LLMHealthStatus>> {
   return apiClient.get<LLMHealthStatus>('/llm/health');
 }
 
 /**
  * Get cache statistics.
  *
- * @returns Cache statistics
+ * @returns Cache statistics wrapped in ApiResult
  */
-export async function getCacheStats(): Promise<{
+export async function getCacheStats(): Promise<ApiResult<{
   hits: number;
   misses: number;
   size: number;
   hit_rate: number;
   evictions: number;
-}> {
+}>> {
   return apiClient.get('/llm/cache/stats');
 }
 
 /**
  * Clear the explanation cache.
  *
- * @returns Clear result with count of entries cleared
+ * @returns Clear result with count of entries cleared wrapped in ApiResult
  */
-export async function clearCache(): Promise<{
+export async function clearCache(): Promise<ApiResult<{
   message: string;
   entries_cleared: number;
-}> {
-  logger.info('Clearing LLM cache');
+}>> {
+  log.info('Clearing LLM cache');
   return apiClient.post('/llm/cache/clear', {});
 }
 
