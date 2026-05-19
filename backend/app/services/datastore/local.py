@@ -8,12 +8,16 @@ from datetime import datetime, UTC
 from typing import Any, Optional
 
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.db.session import SessionLocal
 from app.models.preference import Preference
 from app.models.progress import Progress
 from app.models.scan import Scan
 from app.services.datastore.base import DataStore
+from app.core.logging import get_logger
+
+logger = get_logger("datastore")
 
 
 class LocalDataStore(DataStore):
@@ -36,35 +40,40 @@ class LocalDataStore(DataStore):
     ) -> None:
         """Save or update user progress for a scenario."""
         with self._get_session() as session:
-            progress = (
-                session.query(Progress)
-                .filter(Progress.user_id == user_id, Progress.scenario_id == scenario_id)
-                .first()
-            )
-
-            if progress:
-                # Update existing
-                progress.completed = completed
-                if score is not None:
-                    progress.score = score
-                progress.hints_used = hints_used
-                progress.time_spent = time_spent
-                if completed:
-                    progress.completed_at = datetime.now(UTC)
-            else:
-                # Create new
-                progress = Progress(
-                    user_id=user_id,
-                    scenario_id=scenario_id,
-                    completed=completed,
-                    score=score,
-                    hints_used=hints_used,
-                    time_spent=time_spent,
-                    completed_at=datetime.now(UTC) if completed else None,
+            try:
+                progress = (
+                    session.query(Progress)
+                    .filter(Progress.user_id == user_id, Progress.scenario_id == scenario_id)
+                    .first()
                 )
-                session.add(progress)
 
-            session.commit()
+                if progress:
+                    # Update existing
+                    progress.completed = completed
+                    if score is not None:
+                        progress.score = score
+                    progress.hints_used = hints_used
+                    progress.time_spent = time_spent
+                    if completed:
+                        progress.completed_at = datetime.now(UTC)
+                else:
+                    # Create new
+                    progress = Progress(
+                        user_id=user_id,
+                        scenario_id=scenario_id,
+                        completed=completed,
+                        score=score,
+                        hints_used=hints_used,
+                        time_spent=time_spent,
+                        completed_at=datetime.now(UTC) if completed else None,
+                    )
+                    session.add(progress)
+
+                session.commit()
+            except SQLAlchemyError as e:
+                session.rollback()
+                logger.error(f"Failed to save progress for user {user_id}, scenario {scenario_id}: {e}")
+                raise
 
     def get_progress(self, user_id: str, scenario_id: str) -> Optional[dict[str, Any]]:
         """Get user progress for a specific scenario."""
@@ -176,39 +185,44 @@ class LocalDataStore(DataStore):
     ) -> None:
         """Save or update a scan record."""
         with self._get_session() as session:
-            scan = session.query(Scan).filter(Scan.id == scan_id).first()
+            try:
+                scan = session.query(Scan).filter(Scan.id == scan_id).first()
 
-            if scan:
-                # Update existing scan
-                scan.scan_type = scan_type
-                scan.status = status
-                scan.target_range = target_range
-                scan.port_range = port_range
-                scan.started_at = started_at
-                scan.completed_at = completed_at
-                scan.progress = progress
-                scan.scanned_hosts = scanned_hosts
-                scan.total_hosts = total_hosts
-                scan.results_summary = results_summary
-            else:
-                # Create new scan
-                scan = Scan(
-                    id=scan_id,
-                    scan_type=scan_type,
-                    status=status,
-                    target_range=target_range,
-                    port_range=port_range,
-                    started_at=started_at,
-                    completed_at=completed_at,
-                    progress=progress,
-                    scanned_hosts=scanned_hosts,
-                    total_hosts=total_hosts,
-                    results_summary=results_summary,
-                    timestamp=datetime.now(UTC),
-                )
-                session.add(scan)
+                if scan:
+                    # Update existing scan
+                    scan.scan_type = scan_type
+                    scan.status = status
+                    scan.target_range = target_range
+                    scan.port_range = port_range
+                    scan.started_at = started_at
+                    scan.completed_at = completed_at
+                    scan.progress = progress
+                    scan.scanned_hosts = scanned_hosts
+                    scan.total_hosts = total_hosts
+                    scan.results_summary = results_summary
+                else:
+                    # Create new scan
+                    scan = Scan(
+                        id=scan_id,
+                        scan_type=scan_type,
+                        status=status,
+                        target_range=target_range,
+                        port_range=port_range,
+                        started_at=started_at,
+                        completed_at=completed_at,
+                        progress=progress,
+                        scanned_hosts=scanned_hosts,
+                        total_hosts=total_hosts,
+                        results_summary=results_summary,
+                        timestamp=datetime.now(UTC),
+                    )
+                    session.add(scan)
 
-            session.commit()
+                session.commit()
+            except SQLAlchemyError as e:
+                session.rollback()
+                logger.error(f"Failed to save scan {scan_id} for user {user_id}: {e}")
+                raise
 
     def get_scan(self, user_id: str, scan_id: str) -> Optional[dict[str, Any]]:
         """Get a scan record by ID."""

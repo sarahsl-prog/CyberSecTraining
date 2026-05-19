@@ -9,6 +9,7 @@ import hashlib
 from datetime import datetime, timedelta
 from typing import Optional
 from dataclasses import dataclass, field
+import threading
 
 from app.core.logging import get_llm_logger
 from app.services.llm.models import ExplanationRequest, ExplanationResponse
@@ -52,7 +53,7 @@ class LLMCache:
     - Cache key based on request parameters
     - Statistics tracking
 
-    Thread-safe for concurrent access.
+    Thread-safe for concurrent access using reentrant lock.
     """
 
     # Default cache settings
@@ -79,6 +80,7 @@ class LLMCache:
             "misses": 0,
             "evictions": 0,
         }
+        self._lock = threading.RLock()  # Add reentrant lock for thread safety (Fix Issue #9)
 
         logger.info(
             "LLM cache initialized",
@@ -117,42 +119,43 @@ class LLMCache:
         Returns:
             Cached ExplanationResponse if found and not expired, None otherwise
         """
-        key = self._generate_key(request)
+        with self._lock:
+            key = self._generate_key(request)
 
-        if key not in self._cache:
-            self._stats["misses"] += 1
-            logger.debug(f"Cache miss for key {key[:8]}...")
-            return None
+            if key not in self._cache:
+                self._stats["misses"] += 1
+                logger.debug(f"Cache miss for key {key[:8]}...")
+                return None
 
-        entry = self._cache[key]
+            entry = self._cache[key]
 
-        # Check expiration
-        if entry.is_expired():
-            logger.debug(f"Cache entry expired for key {key[:8]}...")
-            del self._cache[key]
-            self._stats["misses"] += 1
-            return None
+            # Check expiration
+            if entry.is_expired():
+                logger.debug(f"Cache entry expired for key {key[:8]}...")
+                del self._cache[key]
+                self._stats["misses"] += 1
+                return None
 
-        # Record hit and return
-        entry.record_hit()
-        self._stats["hits"] += 1
+            # Record hit and return
+            entry.record_hit()
+            self._stats["hits"] += 1
 
-        logger.debug(
-            f"Cache hit for key {key[:8]}...",
-            extra={"hit_count": entry.hit_count}
-        )
+            logger.debug(
+                f"Cache hit for key {key[:8]}...",
+                extra={"hit_count": entry.hit_count}
+            )
 
-        # Clone response with cached flag set
-        response = ExplanationResponse(
-            explanation=entry.response.explanation,
-            provider=entry.response.provider,
-            topic=entry.response.topic,
-            cached=True,  # Mark as cached
-            difficulty_level=entry.response.difficulty_level,
-            related_topics=entry.response.related_topics,
-        )
+            # Clone response with cached flag set
+            response = ExplanationResponse(
+                explanation=entry.response.explanation,
+                provider=entry.response.provider,
+                topic=entry.response.topic,
+                cached=True,  # Mark as cached
+                difficulty_level=entry.response.difficulty_level,
+                related_topics=entry.response.related_topics,
+            )
 
-        return response
+            return response
 
     def set(
         self,
@@ -166,27 +169,28 @@ class LLMCache:
             request: The original request
             response: The response to cache
         """
-        # Evict expired entries and check size
-        self._cleanup()
+        with self._lock:
+            # Evict expired entries and check size
+            self._cleanup()
 
-        # Check if we need to evict oldest entries
-        if len(self._cache) >= self.max_size:
-            self._evict_oldest()
+            # Check if we need to evict oldest entries
+            if len(self._cache) >= self.max_size:
+                self._evict_oldest()
 
-        key = self._generate_key(request)
+            key = self._generate_key(request)
 
-        entry = CacheEntry(
-            response=response,
-            created_at=datetime.now(),
-            expires_at=datetime.now() + self.ttl,
-        )
+            entry = CacheEntry(
+                response=response,
+                created_at=datetime.now(),
+                expires_at=datetime.now() + self.ttl,
+            )
 
-        self._cache[key] = entry
+            self._cache[key] = entry
 
-        logger.debug(
-            f"Cached response for key {key[:8]}...",
-            extra={"topic": request.topic}
-        )
+            logger.debug(
+                f"Cached response for key {key[:8]}...",
+                extra={"topic": request.topic}
+            )
 
     def invalidate(self, request: ExplanationRequest) -> bool:
         """
@@ -198,14 +202,15 @@ class LLMCache:
         Returns:
             True if entry was removed, False if not found
         """
-        key = self._generate_key(request)
+        with self._lock:
+            key = self._generate_key(request)
 
-        if key in self._cache:
-            del self._cache[key]
-            logger.debug(f"Invalidated cache entry {key[:8]}...")
-            return True
+            if key in self._cache:
+                del self._cache[key]
+                logger.debug(f"Invalidated cache entry {key[:8]}...")
+                return True
 
-        return False
+            return False
 
     def clear(self) -> int:
         """
@@ -214,10 +219,11 @@ class LLMCache:
         Returns:
             Number of entries cleared
         """
-        count = len(self._cache)
-        self._cache.clear()
-        logger.info(f"Cleared {count} cache entries")
-        return count
+        with self._lock:
+            count = len(self._cache)
+            self._cache.clear()
+            logger.info(f"Cleared {count} cache entries")
+            return count
 
     def _cleanup(self) -> int:
         """
