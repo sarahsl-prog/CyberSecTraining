@@ -5,10 +5,11 @@ This module centralizes all application configuration, loaded from environment
 variables with sensible defaults. Configuration is validated using Pydantic.
 """
 
+import secrets
 from pathlib import Path
 from typing import Optional, Literal
 
-from pydantic import ConfigDict
+from pydantic import ConfigDict, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -35,7 +36,27 @@ class Settings(BaseSettings):
     hosted_llm_base_url: Optional[str] = None
 
     # Security
-    secret_key: str = "change-this-in-production"
+    secret_key: str = ""
+
+    @field_validator('secret_key')
+    @classmethod
+    def validate_secret_key(cls, v: str) -> str:
+        # Allow empty - will be generated in __init__ if needed
+        return v
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Generate a secure key in debug mode if not set or is the placeholder
+        if not self.secret_key or self.secret_key == "change-this-in-production":
+            if self.debug:
+                import warnings
+                warnings.warn("Using auto-generated secret key for development. Set SECRET_KEY environment variable for production.", stacklevel=2)
+                self.secret_key = secrets.token_hex(32)
+            else:
+                raise ValueError(
+                    "SECRET_KEY must be set in production. "
+                    "Generate a secure key: openssl rand -hex 32"
+                )
 
     # Feature flags
     enable_real_scanning: bool = True

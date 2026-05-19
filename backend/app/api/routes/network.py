@@ -69,8 +69,20 @@ def _device_to_response(device: DeviceInfo) -> DeviceResponse:
 
     Returns:
         DeviceResponse for API
+
+    Raises:
+        ValueError: If device or ports are not the correct type
     """
     from app.schemas.network import PortResponse
+
+    # Validate device type
+    if not isinstance(device, DeviceInfo):
+        raise ValueError(f"Expected DeviceInfo, got {type(device)}")
+
+    # Validate each port
+    for port in device.open_ports:
+        if not isinstance(port, PortInfo):
+            raise ValueError(f"Expected PortInfo, got {type(port)}")
 
     return DeviceResponse(
         ip=device.ip,

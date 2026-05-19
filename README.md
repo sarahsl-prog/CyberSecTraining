@@ -9,6 +9,7 @@ An accessible, educational cybersecurity tool for learning network security thro
 - **LLM-Powered Explanations** - Get AI-assisted explanations tailored to your knowledge level
 - **Accessibility-First** - WCAG 2.1 AA compliant with full screen reader support
 - **Training & Live Modes** - Practice safely with simulated data or scan real networks
+- **Security-First Design** - Built with security best practices and validation
 
 ## Application Modes
 
@@ -454,6 +455,34 @@ CyberSecTraining/
 
 - [Design Document](./CyberSec-Teaching-Tool-Design-Doc.md)
 - [User Flow Diagrams](./CyberSec-Tool-UserFlow-Diagrams.md)
+- [Security Improvements](./SECURITY-IMPROVEMENTS.md)
+
+## Security
+
+This tool includes several security features to protect users and systems:
+
+### Production Deployment
+
+For production deployment, set these environment variables:
+
+```bash
+# Required for production
+export DEBUG=false
+export SECRET_KEY=<your-secure-64-character-key>
+
+# Generate a secure key with:
+openssl rand -hex 32
+```
+
+### Security Features
+
+- **Authentication & Authorization** - API endpoints have authentication framework
+- **Input Validation** - All inputs are validated and sanitized
+- **Secure Configuration** - Production mode requires proper security setup
+- **Type Safety** - Strict type validation prevents injection attacks
+- **Trusted Hosts** - Production mode limits access to trusted hosts
+
+See [SECURITY-IMPROVEMENTS.md](./SECURITY-IMPROVEMENTS.md) for detailed security information.
 
 ## License
 
