@@ -16,6 +16,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func, case
 
+from app.api.dependencies import require_api_key
 from app.core.logging import get_logger
 from app.db.session import get_db
 from app.models.vulnerability import Vulnerability, Severity
@@ -66,6 +67,7 @@ def _vuln_to_response(vuln: Vulnerability) -> VulnerabilityResponse:
 
 @router.get("", response_model=VulnerabilityListResponse)
 async def list_vulnerabilities(
+    _authenticated: bool = Depends(require_api_key),
     device_id: Optional[str] = Query(None, description="Filter by device ID"),
     scan_id: Optional[str] = Query(None, description="Filter by scan ID (via device)"),
     severity: Optional[str] = Query(None, description="Filter by severity"),
@@ -149,6 +151,7 @@ async def list_vulnerabilities(
 
 @router.get("/summary", response_model=VulnerabilitySummary)
 async def get_vulnerability_summary(
+    _authenticated: bool = Depends(require_api_key),
     scan_id: Optional[str] = Query(None, description="Filter by scan ID"),
     device_id: Optional[str] = Query(None, description="Filter by device ID"),
     db: Session = Depends(get_db),
@@ -199,6 +202,7 @@ async def get_vulnerability_summary(
 @router.get("/{vulnerability_id}", response_model=VulnerabilityResponse)
 async def get_vulnerability(
     vulnerability_id: str,
+    _authenticated: bool = Depends(require_api_key),
     db: Session = Depends(get_db),
 ) -> VulnerabilityResponse:
     """
@@ -230,6 +234,7 @@ async def get_vulnerability(
 async def update_vulnerability(
     vulnerability_id: str,
     update: VulnerabilityUpdate,
+    _authenticated: bool = Depends(require_api_key),
     db: Session = Depends(get_db),
 ) -> VulnerabilityResponse:
     """
@@ -281,6 +286,7 @@ async def update_vulnerability(
 async def mark_vulnerability_fixed(
     vulnerability_id: str,
     data: VulnerabilityMarkFixed,
+    _authenticated: bool = Depends(require_api_key),
     db: Session = Depends(get_db),
 ) -> VulnerabilityResponse:
     """
@@ -325,6 +331,7 @@ async def mark_vulnerability_fixed(
 
 @router.get("/types/list")
 async def list_vulnerability_types(
+    _authenticated: bool = Depends(require_api_key),
     db: Session = Depends(get_db),
 ) -> list[dict]:
     """

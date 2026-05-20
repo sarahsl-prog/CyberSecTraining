@@ -15,6 +15,7 @@ from math import ceil
 from fastapi import APIRouter, HTTPException, Query, Depends
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import require_api_key
 from app.core.logging import get_logger
 from app.db.session import get_db
 from app.models.device import Device
@@ -69,22 +70,23 @@ def _device_to_response(device: Device) -> DeviceResponse:
 
 @router.get("", response_model=DeviceListResponse)
 async def list_devices(
-    scan_id: Optional[str] = Query(None, description="Filter by scan ID"),
-    device_type: Optional[str] = Query(None, description="Filter by device type"),
-    has_vulnerabilities: Optional[bool] = Query(None, description="Filter by vulnerability presence"),
-    page: int = Query(default=1, ge=1, description="Page number"),
+    _authenticated: bool = Depends(require_api_key),
+    page: int = Query(default=1, ge=1, description="Page number (1-indexed)"),
     page_size: int = Query(default=20, ge=1, le=100, description="Items per page"),
+    scan_id: Optional[str] = Query(default=None),
+    device_type: Optional[str] = Query(default=None, description="Filter by device type"),
+    has_vulnerabilities: Optional[bool] = Query(default=None, description="Filter by vulnerability presence"),
     db: Session = Depends(get_db),
 ) -> DeviceListResponse:
     """
     List devices with optional filtering and pagination.
 
     Args:
+        page: Page number (1-indexed)
+        page_size: Number of items per page
         scan_id: Optional scan ID to filter by
         device_type: Optional device type to filter by
         has_vulnerabilities: Filter devices with/without vulnerabilities
-        page: Page number (1-indexed)
-        page_size: Number of items per page
 
     Returns:
         Paginated list of devices
@@ -103,8 +105,10 @@ async def list_devices(
     # Get total count
     total = query.count()
 
-    # Apply pagination
+    # Calculate offset from page number
     offset = (page - 1) * page_size
+
+    # Apply pagination
     devices = query.order_by(Device.created_at.desc()).offset(offset).limit(page_size).all()
 
     # Filter by vulnerability presence (post-query for simplicity)
@@ -126,6 +130,7 @@ async def list_devices(
 @router.get("/{device_id}", response_model=DeviceResponse)
 async def get_device(
     device_id: str,
+    _authenticated: bool = Depends(require_api_key),
     db: Session = Depends(get_db),
 ) -> DeviceResponse:
     """
@@ -154,6 +159,7 @@ async def get_device(
 async def update_device(
     device_id: str,
     update: DeviceUpdate,
+    _authenticated: bool = Depends(require_api_key),
     db: Session = Depends(get_db),
 ) -> DeviceResponse:
     """
@@ -194,6 +200,7 @@ async def update_device(
 @router.delete("/{device_id}")
 async def delete_device(
     device_id: str,
+    _authenticated: bool = Depends(require_api_key),
     db: Session = Depends(get_db),
 ) -> dict:
     """
@@ -226,6 +233,7 @@ async def delete_device(
 @router.get("/{device_id}/vulnerabilities")
 async def get_device_vulnerabilities(
     device_id: str,
+    _authenticated: bool = Depends(require_api_key),
     severity: Optional[str] = Query(None, description="Filter by severity"),
     is_fixed: Optional[bool] = Query(None, description="Filter by fix status"),
     db: Session = Depends(get_db),

@@ -12,8 +12,9 @@ All scans require user consent to confirm network ownership.
 """
 
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 
+from app.api.dependencies import require_api_key
 from app.core.logging import get_logger
 from app.schemas.network import (
     ScanRequest,
@@ -94,12 +95,12 @@ def _device_to_response(device: DeviceInfo) -> DeviceResponse:
         device_type=device.device_type,
         open_ports=[
             PortResponse(
-                port=p.port if hasattr(p, 'port') else p.get('port'),
-                protocol=p.protocol if hasattr(p, 'protocol') else p.get('protocol', 'tcp'),
-                state=p.state if hasattr(p, 'state') else p.get('state', 'open'),
-                service=p.service if hasattr(p, 'service') else p.get('service'),
-                version=p.version if hasattr(p, 'version') else p.get('version'),
-                banner=p.banner if hasattr(p, 'banner') else p.get('banner'),
+                port=p.port,
+                protocol=p.protocol,
+                state=p.state,
+                service=p.service,
+                version=p.version,
+                banner=p.banner,
             )
             for p in device.open_ports
         ],
@@ -109,7 +110,7 @@ def _device_to_response(device: DeviceInfo) -> DeviceResponse:
 
 
 @router.post("/scan", response_model=ScanResponse)
-async def start_scan(request: ScanRequest) -> ScanResponse:
+async def start_scan(request: ScanRequest, _authenticated: bool = Depends(require_api_key)) -> ScanResponse:
     """
     Start a new network scan.
 
@@ -173,7 +174,7 @@ async def start_scan(request: ScanRequest) -> ScanResponse:
 
 
 @router.get("/scan/{scan_id}", response_model=ScanResponse)
-async def get_scan(scan_id: str) -> ScanResponse:
+async def get_scan(scan_id: str, _authenticated: bool = Depends(require_api_key)) -> ScanResponse:
     """
     Get scan results by ID.
 
@@ -200,7 +201,7 @@ async def get_scan(scan_id: str) -> ScanResponse:
 
 
 @router.get("/scan/{scan_id}/status", response_model=ScanStatusResponse)
-async def get_scan_status(scan_id: str) -> ScanStatusResponse:
+async def get_scan_status(scan_id: str, _authenticated: bool = Depends(require_api_key)) -> ScanStatusResponse:
     """
     Get scan status (lightweight endpoint for polling).
 
@@ -234,6 +235,7 @@ async def get_scan_status(scan_id: str) -> ScanStatusResponse:
 @router.get("/scan/{scan_id}/devices", response_model=list[DeviceResponse])
 async def get_scan_devices(
     scan_id: str,
+    _authenticated: bool = Depends(require_api_key),
     limit: int = Query(default=100, ge=1, le=1000),
     offset: int = Query(default=0, ge=0),
 ) -> list[DeviceResponse]:
@@ -264,7 +266,7 @@ async def get_scan_devices(
 
 
 @router.post("/scan/{scan_id}/cancel")
-async def cancel_scan(scan_id: str) -> dict:
+async def cancel_scan(scan_id: str, _authenticated: bool = Depends(require_api_key)) -> dict:
     """
     Cancel a running scan.
 
@@ -293,6 +295,7 @@ async def cancel_scan(scan_id: str) -> dict:
 
 @router.get("/scans", response_model=PaginatedScanResponse)
 async def list_scans(
+    _authenticated: bool = Depends(require_api_key),
     page: int = Query(default=1, ge=1, description="Page number (1-indexed)"),
     page_size: int = Query(default=10, ge=1, le=100, description="Items per page"),
 ) -> PaginatedScanResponse:
@@ -330,7 +333,7 @@ async def list_scans(
 
 
 @router.get("/interfaces", response_model=list[NetworkInterfaceResponse])
-async def list_interfaces() -> list[NetworkInterfaceResponse]:
+async def list_interfaces(_authenticated: bool = Depends(require_api_key)) -> list[NetworkInterfaceResponse]:
     """
     List available network interfaces.
 
@@ -356,7 +359,7 @@ async def list_interfaces() -> list[NetworkInterfaceResponse]:
 
 
 @router.get("/detect")
-async def detect_local_network() -> dict:
+async def detect_local_network(_authenticated: bool = Depends(require_api_key)) -> dict:
     """
     Auto-detect the local network range.
 
@@ -384,7 +387,7 @@ async def detect_local_network() -> dict:
 
 
 @router.post("/validate", response_model=NetworkValidationResponse)
-async def validate_target(request: NetworkValidationRequest) -> NetworkValidationResponse:
+async def validate_target(request: NetworkValidationRequest, _authenticated: bool = Depends(require_api_key)) -> NetworkValidationResponse:
     """
     Validate a network target before scanning.
 
