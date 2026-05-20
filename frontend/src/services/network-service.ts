@@ -216,24 +216,69 @@ export const networkService = {
   async *pollScanStatus(
     scanId: string,
     options: {
-      /** Polling interval in ms (default: 2000) */
+      /** Initial polling interval in ms (default: 500) */
       interval?: number;
       /** Maximum polling attempts (default: 300) */
       maxAttempts?: number;
       /** AbortSignal for cancellation */
       signal?: AbortSignal;
+      /** Use exponential backoff (default: true) */
+      useExponentialBackoff?: boolean;
     } = {}
   ): AsyncGenerator<ScanStatusResponse, void, unknown> {
-    const { interval = 2000, maxAttempts = 300, signal } = options;
+    const { 
+      interval = 500,  // Start faster with 500ms
+      maxAttempts = 300, 
+      signal,
+      useExponentialBackoff = true 
+    } = options;
     let attempts = 0;
+    let currentInterval = interval;
 
-    log.info('Starting scan status polling', { scanId, interval, maxAttempts });
+    log.info('Starting scan status polling', { scanId, interval, maxAttempts, useExponentialBackoff });
 
     while (attempts < maxAttempts) {
       if (signal?.aborted) {
         log.info('Polling cancelled', { scanId });
         return;
       }
+
+      const result = await this.getScanStatus(scanId, { signal });
+
+      if (!result.success) {
+        log.error('Failed to poll scan status', result.error);
+        throw new Error(result.error.detail);
+      }
+
+      yield result.data;
+
+      // Stop polling on terminal states
+      if (
+        result.data.status === 'completed' ||
+        result.data.status === 'failed' ||
+        result.data.status === 'cancelled'
+      ) {
+        log.info('Polling complete', { scanId, status: result.data.status });
+        return;
+      }
+
+      attempts++;
+      
+      // Use exponential backoff for more responsive polling (Fix Issue #13)
+      // Start fast, slow down if scan is taking longer
+      if (useExponentialBackoff) {
+        // Exponential backoff: double interval every 3 attempts, max out at 2000ms
+        if (attempts % 3 === 0 && currentInterval < 2000) {
+          currentInterval = Math.min(currentInterval * 2, 2000);
+        }
+        await new Promise((resolve) => setTimeout(resolve, currentInterval));
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, interval));
+      }
+    }
+
+    log.warn('Polling exceeded max attempts', { scanId, maxAttempts });
+  }
 
       const result = await this.getScanStatus(scanId, { signal });
 

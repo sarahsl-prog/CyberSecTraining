@@ -12,8 +12,9 @@ All scans require user consent to confirm network ownership.
 """
 
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 
+from app.api.dependencies import require_api_key
 from app.core.logging import get_logger
 from app.schemas.network import (
     ScanRequest,
@@ -69,8 +70,20 @@ def _device_to_response(device: DeviceInfo) -> DeviceResponse:
 
     Returns:
         DeviceResponse for API
+
+    Raises:
+        ValueError: If device or ports are not the correct type
     """
     from app.schemas.network import PortResponse
+
+    # Validate device type
+    if not isinstance(device, DeviceInfo):
+        raise ValueError(f"Expected DeviceInfo, got {type(device)}")
+
+    # Validate each port
+    for port in device.open_ports:
+        if not isinstance(port, PortInfo):
+            raise ValueError(f"Expected PortInfo, got {type(port)}")
 
     return DeviceResponse(
         ip=device.ip,
@@ -82,12 +95,12 @@ def _device_to_response(device: DeviceInfo) -> DeviceResponse:
         device_type=device.device_type,
         open_ports=[
             PortResponse(
-                port=p.port if hasattr(p, 'port') else p.get('port'),
-                protocol=p.protocol if hasattr(p, 'protocol') else p.get('protocol', 'tcp'),
-                state=p.state if hasattr(p, 'state') else p.get('state', 'open'),
-                service=p.service if hasattr(p, 'service') else p.get('service'),
-                version=p.version if hasattr(p, 'version') else p.get('version'),
-                banner=p.banner if hasattr(p, 'banner') else p.get('banner'),
+                port=p.port,
+                protocol=p.protocol,
+                state=p.state,
+                service=p.service,
+                version=p.version,
+                banner=p.banner,
             )
             for p in device.open_ports
         ],
@@ -97,7 +110,7 @@ def _device_to_response(device: DeviceInfo) -> DeviceResponse:
 
 
 @router.post("/scan", response_model=ScanResponse)
-async def start_scan(request: ScanRequest) -> ScanResponse:
+async def start_scan(request: ScanRequest, _authenticated: bool = Depends(require_api_key)) -> ScanResponse:
     """
     Start a new network scan.
 
@@ -127,7 +140,9 @@ async def start_scan(request: ScanRequest) -> ScanResponse:
         429: Another scan is already running or cooldown active
         500: Internal scanner error
     """
-    logger.info(f"Scan request received: {request.target} ({request.scan_type.value})")
+    # Enhanced security logging (Fix Issue #20)
+    client_info = f"request from {request.target} with consent={request.user_consent}"
+    logger.info(f"Scan request received: {client_info}")
 
     try:
         orchestrator = get_scan_orchestrator()
@@ -141,25 +156,25 @@ async def start_scan(request: ScanRequest) -> ScanResponse:
         return _scan_result_to_response(result)
 
     except NetworkValidationError as e:
-        logger.warning(f"Network validation failed: {e}")
+        logger.warning(f"Network validation failed: {e} | target={request.target}")
         raise HTTPException(status_code=400, detail=str(e))
 
     except PermissionError as e:
-        logger.warning(f"Permission denied: {e}")
+        logger.warning(f"Permission denied: {e} | target={request.target}")
         raise HTTPException(status_code=403, detail=str(e))
 
     except RuntimeError as e:
         # Rate limiting or concurrent scan errors
-        logger.warning(f"Scan blocked: {e}")
+        logger.warning(f"Scan blocked: {e} | target={request.target}")
         raise HTTPException(status_code=429, detail=str(e))
 
     except Exception as e:
-        logger.exception(f"Scan error: {e}")
+        logger.exception(f"Scan error: {e} | target={request.target}")
         raise HTTPException(status_code=500, detail=f"Scan failed: {str(e)}")
 
 
 @router.get("/scan/{scan_id}", response_model=ScanResponse)
-async def get_scan(scan_id: str) -> ScanResponse:
+async def get_scan(scan_id: str, _authenticated: bool = Depends(require_api_key)) -> ScanResponse:
     """
     Get scan results by ID.
 
@@ -186,7 +201,7 @@ async def get_scan(scan_id: str) -> ScanResponse:
 
 
 @router.get("/scan/{scan_id}/status", response_model=ScanStatusResponse)
-async def get_scan_status(scan_id: str) -> ScanStatusResponse:
+async def get_scan_status(scan_id: str, _authenticated: bool = Depends(require_api_key)) -> ScanStatusResponse:
     """
     Get scan status (lightweight endpoint for polling).
 
@@ -220,6 +235,7 @@ async def get_scan_status(scan_id: str) -> ScanStatusResponse:
 @router.get("/scan/{scan_id}/devices", response_model=list[DeviceResponse])
 async def get_scan_devices(
     scan_id: str,
+    _authenticated: bool = Depends(require_api_key),
     limit: int = Query(default=100, ge=1, le=1000),
     offset: int = Query(default=0, ge=0),
 ) -> list[DeviceResponse]:
@@ -250,7 +266,7 @@ async def get_scan_devices(
 
 
 @router.post("/scan/{scan_id}/cancel")
-async def cancel_scan(scan_id: str) -> dict:
+async def cancel_scan(scan_id: str, _authenticated: bool = Depends(require_api_key)) -> dict:
     """
     Cancel a running scan.
 
@@ -279,6 +295,7 @@ async def cancel_scan(scan_id: str) -> dict:
 
 @router.get("/scans", response_model=PaginatedScanResponse)
 async def list_scans(
+    _authenticated: bool = Depends(require_api_key),
     page: int = Query(default=1, ge=1, description="Page number (1-indexed)"),
     page_size: int = Query(default=10, ge=1, le=100, description="Items per page"),
 ) -> PaginatedScanResponse:
@@ -316,7 +333,7 @@ async def list_scans(
 
 
 @router.get("/interfaces", response_model=list[NetworkInterfaceResponse])
-async def list_interfaces() -> list[NetworkInterfaceResponse]:
+async def list_interfaces(_authenticated: bool = Depends(require_api_key)) -> list[NetworkInterfaceResponse]:
     """
     List available network interfaces.
 
@@ -342,7 +359,7 @@ async def list_interfaces() -> list[NetworkInterfaceResponse]:
 
 
 @router.get("/detect")
-async def detect_local_network() -> dict:
+async def detect_local_network(_authenticated: bool = Depends(require_api_key)) -> dict:
     """
     Auto-detect the local network range.
 
@@ -370,7 +387,7 @@ async def detect_local_network() -> dict:
 
 
 @router.post("/validate", response_model=NetworkValidationResponse)
-async def validate_target(request: NetworkValidationRequest) -> NetworkValidationResponse:
+async def validate_target(request: NetworkValidationRequest, _authenticated: bool = Depends(require_api_key)) -> NetworkValidationResponse:
     """
     Validate a network target before scanning.
 
@@ -398,6 +415,7 @@ async def validate_target(request: NetworkValidationRequest) -> NetworkValidatio
             error=None,
         )
     except NetworkValidationError as e:
+        # Expected validation errors - safe to return to client
         return NetworkValidationResponse(
             valid=False,
             target=request.target,
@@ -406,12 +424,25 @@ async def validate_target(request: NetworkValidationRequest) -> NetworkValidatio
             type="unknown",
             error=str(e),
         )
-    except Exception as e:
+    except ValueError as e:
+        # Invalid value errors (e.g., bad IP format)
+        logger.warning(f"Network validation failed for target {request.target}: {e}")
         return NetworkValidationResponse(
             valid=False,
             target=request.target,
             is_private=False,
             num_hosts=0,
             type="unknown",
-            error=f"Validation error: {str(e)}",
+            error="Invalid target format. Please use CIDR notation or IP address.",
+        )
+    except Exception as e:
+        # Unexpected errors - log details but don't expose to client (Fix Issue #11)
+        logger.error(f"Unexpected error during network validation for target {request.target}: {e}", exc_info=True)
+        return NetworkValidationResponse(
+            valid=False,
+            target=request.target,
+            is_private=False,
+            num_hosts=0,
+            type="unknown",
+            error="An error occurred during validation. Please try again.",
         )

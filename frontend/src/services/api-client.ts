@@ -93,8 +93,12 @@ function transformError(error: unknown): ApiError {
     };
   }
 
-  // Timeout errors
-  if (error instanceof DOMException && error.name === 'TimeoutError') {
+  // Timeout errors (Fix Issue #14)
+  // TimeoutError is not a DOMException, check by name or type
+  if (
+    (error instanceof Error && error.name === 'TimeoutError') ||
+    (error instanceof TypeError && error.message.includes('timeout', 'timed out'))
+  ) {
     return {
       detail: 'Request timed out. Please try again.',
       status_code: 408,

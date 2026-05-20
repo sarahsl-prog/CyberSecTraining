@@ -120,15 +120,15 @@ class NetworkValidator:
         try:
             net = ipaddress.ip_network(network, strict=False)
 
-            # Check if the network is a subnet of any private range
+            # Check if the network is a subnet of any private range (Fix Issue #21)
+            # If not a subnet of private network, reject regardless of size
             for private_net in self.PRIVATE_NETWORKS + self.ADDITIONAL_ALLOWED:
                 if self._is_subnet_of(net, private_net):
                     return True
 
-            # Also check individual IPs if it's a small range
-            if net.num_addresses <= self.max_network_size:
-                return all(self.is_private_ip(str(ip)) for ip in net.hosts())
-
+            # If not a subnet of any private network, reject
+            # The previous logic allowed small public ranges by checking individual IPs
+            # This could allow scanning of public IP ranges, which is a security risk
             return False
         except ValueError:
             logger.warning(f"Invalid network: {network}")

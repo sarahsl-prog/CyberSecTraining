@@ -5,6 +5,7 @@ from typing import Any, Literal
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from app.api.dependencies import require_api_key
 from app.dependencies import get_datastore
 from app.services.datastore.base import DataStore
 from app.config import settings as app_settings
@@ -79,7 +80,7 @@ def _get_settings_with_default(
 
 
 @router.get("", response_model=AllSettings)
-async def get_all_settings(datastore: DataStore = Depends(get_datastore)) -> AllSettings:
+async def get_all_settings(_authenticated: bool = Depends(require_api_key), datastore: DataStore = Depends(get_datastore)) -> AllSettings:
     """Get all settings."""
     return AllSettings(
         accessibility=_get_settings_with_default(
@@ -94,6 +95,7 @@ async def get_all_settings(datastore: DataStore = Depends(get_datastore)) -> All
 
 @router.get("/accessibility", response_model=AccessibilitySettings)
 async def get_accessibility_settings(
+    _authenticated: bool = Depends(require_api_key),
     datastore: DataStore = Depends(get_datastore),
 ) -> AccessibilitySettings:
     """Get accessibility settings."""
@@ -102,7 +104,7 @@ async def get_accessibility_settings(
 
 @router.post("/accessibility", response_model=AccessibilitySettings)
 async def update_accessibility_settings(
-    settings: AccessibilitySettings, datastore: DataStore = Depends(get_datastore)
+    settings: AccessibilitySettings, _authenticated: bool = Depends(require_api_key), datastore: DataStore = Depends(get_datastore)
 ) -> AccessibilitySettings:
     """Update accessibility settings."""
     # Validate color mode
@@ -119,14 +121,14 @@ async def update_accessibility_settings(
 
 
 @router.get("/llm", response_model=LLMSettings)
-async def get_llm_settings(datastore: DataStore = Depends(get_datastore)) -> LLMSettings:
+async def get_llm_settings(_authenticated: bool = Depends(require_api_key), datastore: DataStore = Depends(get_datastore)) -> LLMSettings:
     """Get LLM settings."""
     return _get_settings_with_default(datastore, "llm_settings", LLMSettings)
 
 
 @router.post("/llm", response_model=LLMSettings)
 async def update_llm_settings(
-    settings: LLMSettings, datastore: DataStore = Depends(get_datastore)
+    settings: LLMSettings, _authenticated: bool = Depends(require_api_key), datastore: DataStore = Depends(get_datastore)
 ) -> LLMSettings:
     """Update LLM settings."""
     valid_levels = ["brief", "moderate", "detailed"]
@@ -140,14 +142,14 @@ async def update_llm_settings(
 
 
 @router.get("/scan", response_model=ScanSettings)
-async def get_scan_settings(datastore: DataStore = Depends(get_datastore)) -> ScanSettings:
+async def get_scan_settings(_authenticated: bool = Depends(require_api_key), datastore: DataStore = Depends(get_datastore)) -> ScanSettings:
     """Get scan settings."""
     return _get_settings_with_default(datastore, "scan_settings", ScanSettings)
 
 
 @router.post("/scan", response_model=ScanSettings)
 async def update_scan_settings(
-    settings: ScanSettings, datastore: DataStore = Depends(get_datastore)
+    settings: ScanSettings, _authenticated: bool = Depends(require_api_key), datastore: DataStore = Depends(get_datastore)
 ) -> ScanSettings:
     """Update scan settings."""
     valid_types = ["quick", "deep"]
@@ -164,14 +166,14 @@ async def update_scan_settings(
 
 
 @router.get("/privacy", response_model=PrivacySettings)
-async def get_privacy_settings(datastore: DataStore = Depends(get_datastore)) -> PrivacySettings:
+async def get_privacy_settings(_authenticated: bool = Depends(require_api_key), datastore: DataStore = Depends(get_datastore)) -> PrivacySettings:
     """Get privacy settings."""
     return _get_settings_with_default(datastore, "privacy_settings", PrivacySettings)
 
 
 @router.post("/privacy", response_model=PrivacySettings)
 async def update_privacy_settings(
-    settings: PrivacySettings, datastore: DataStore = Depends(get_datastore)
+    settings: PrivacySettings, _authenticated: bool = Depends(require_api_key), datastore: DataStore = Depends(get_datastore)
 ) -> PrivacySettings:
     """Update privacy settings."""
     datastore.save_preference("local", "privacy_settings", settings.model_dump_json())
@@ -179,7 +181,7 @@ async def update_privacy_settings(
 
 
 @router.get("/mode", response_model=ModeSettings)
-async def get_mode_settings(datastore: DataStore = Depends(get_datastore)) -> ModeSettings:
+async def get_mode_settings(_authenticated: bool = Depends(require_api_key), datastore: DataStore = Depends(get_datastore)) -> ModeSettings:
     """
     Get application mode settings.
 
@@ -191,7 +193,7 @@ async def get_mode_settings(datastore: DataStore = Depends(get_datastore)) -> Mo
 
 @router.post("/mode", response_model=ModeSettings)
 async def update_mode_settings(
-    settings: ModeSettings, datastore: DataStore = Depends(get_datastore)
+    settings: ModeSettings, _authenticated: bool = Depends(require_api_key), datastore: DataStore = Depends(get_datastore)
 ) -> ModeSettings:
     """
     Update application mode settings.

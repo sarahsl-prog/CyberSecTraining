@@ -13,9 +13,11 @@ from unittest.mock import MagicMock, AsyncMock
 
 # Set test configuration before importing app
 import os
-os.environ["DEBUG"] = "false"
+import secrets
+os.environ["DEBUG"] = "True"  # Enable debug for tests to allow trusted host
 os.environ["LOG_LEVEL"] = "WARNING"
 os.environ["ENABLE_REAL_SCANNING"] = "false"
+os.environ["SECRET_KEY"] = secrets.token_hex(32)
 
 from app.main import app
 from app.config import settings

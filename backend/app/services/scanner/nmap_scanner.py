@@ -61,6 +61,7 @@ class NmapScanner(BaseScannerInterface):
         self._fingerprinter = DeviceFingerprinter()
         self._active_scans: dict[str, ScanResult] = {}
         self._scan_processes: dict[str, asyncio.subprocess.Process] = {}
+        self._lock = asyncio.Lock()  # Add lock for thread safety (Fix Issue #10)
 
         # Verify nmap is available
         self._verify_nmap_installed()
@@ -398,29 +399,42 @@ class NmapScanner(BaseScannerInterface):
         Returns:
             True if scan was cancelled, False if not found or already complete
         """
-        if scan_id not in self._active_scans:
-            logger.warning(f"Cannot cancel scan {scan_id}: not found")
-            return False
+        async with self._lock:
+            if scan_id not in self._active_scans:
+                logger.warning(f"Cannot cancel scan {scan_id}: not found")
+                return False
 
-        result = self._active_scans[scan_id]
+            result = self._active_scans[scan_id]
 
-        if result.status != ScanStatus.RUNNING:
-            logger.warning(f"Cannot cancel scan {scan_id}: not running")
-            return False
+            if result.status != ScanStatus.RUNNING:
+                logger.warning(f"Cannot cancel scan {scan_id}: not running")
+                return False
 
-        # Try to terminate the process
-        if scan_id in self._scan_processes:
-            process = self._scan_processes[scan_id]
-            process.terminate()
-            await process.wait()
+            # Try to terminate the process with proper error handling (Fix Issue #10)
+            if scan_id in self._scan_processes:
+                process = self._scan_processes[scan_id]
+                try:
+                    # Try graceful termination first
+                    process.terminate()
+                    try:
+                        # Wait up to 5 seconds for graceful shutdown
+                        await asyncio.wait_for(process.wait(), timeout=5.0)
+                    except asyncio.TimeoutError:
+                        # Force kill if process doesn't terminate
+                        logger.warning(f"Scan {scan_id} did not terminate gracefully, killing")
+                        process.kill()
+                        await process.wait()
+                except Exception as e:
+                    logger.error(f"Error terminating scan {scan_id}: {e}")
+                    # Continue anyway to update status
 
-        result.status = ScanStatus.CANCELLED
-        result.completed_at = datetime.now(UTC)
+            result.status = ScanStatus.CANCELLED
+            result.completed_at = datetime.now(UTC)
 
-        audit_logger.info(f"Scan cancelled | scan_id={scan_id}")
-        logger.info(f"Scan {scan_id} cancelled")
+            audit_logger.info(f"Scan cancelled | scan_id={scan_id}")
+            logger.info(f"Scan {scan_id} cancelled")
 
-        return True
+            return True
 
     async def discover_hosts(self, target: str) -> list[str]:
         """

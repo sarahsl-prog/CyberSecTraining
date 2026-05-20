@@ -8,6 +8,7 @@ It serves as the main entry point for the API layer to interact with scanning.
 
 import asyncio
 import json
+from collections import OrderedDict
 from datetime import datetime, timedelta, UTC
 from typing import Optional, Union
 import uuid
@@ -55,10 +56,13 @@ class ScanOrchestrator:
         self._nmap_scanner: Optional[NmapScanner] = None
         self._fake_scanner: Optional[FakeNetworkGenerator] = None
         self._validator = NetworkValidator(max_network_size=settings.max_network_size)
-        self._scan_history: dict[str, ScanResult] = {}
+        # Use OrderedDict with max size for LRU caching (Fix Issue #5)
+        self._scan_history: OrderedDict[str, ScanResult] = OrderedDict()
+        self._max_history_size = 100  # Keep last 100 scans
         self._current_scan: Optional[str] = None
         self._last_scan_time: Optional[datetime] = None
         self._scan_lock = asyncio.Lock()
+        self._error_queue: asyncio.Queue = asyncio.Queue()  # Fix Issue #6
         self._datastore = get_datastore()
 
         logger.info("ScanOrchestrator initialized")
@@ -78,15 +82,38 @@ class ScanOrchestrator:
             mode_settings_json = datastore.get_preference("local", "mode_settings")
 
             if mode_settings_json:
-                import json
                 mode_data = json.loads(mode_settings_json)
-                return mode_data.get("mode", "training")
+                mode = mode_data.get("mode", "training")
+                
+                # Validate mode value (Fix Issue #4)
+                if mode not in ["training", "live"]:
+                    logger.warning(f"Invalid mode in preferences: {mode}, defaulting to training")
+                    return "training"
+                
+                return mode
 
             # Default to training mode if not set
             return "training"
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse mode settings JSON: {e}")
         except Exception as e:
             logger.warning(f"Failed to get application mode, defaulting to training: {e}")
-            return "training"
+        
+        return "training"
+    
+    def _add_to_history(self, scan_id: str, result: ScanResult) -> None:
+        """
+        Add to history with size limit (Fix Issue #5).
+        
+        Args:
+            scan_id: Unique scan identifier
+            result: Scan result to add
+        """
+        self._scan_history[scan_id] = result
+        
+        # Remove oldest if over limit
+        while len(self._scan_history) > self._max_history_size:
+            self._scan_history.popitem(last=False)
 
     def _get_scanner(self) -> Union[NmapScanner, FakeNetworkGenerator]:
         """
@@ -240,6 +267,9 @@ class ScanOrchestrator:
             # Update the stored result with actual scan data
             if scan_id in self._scan_history:
                 self._scan_history[scan_id] = result
+            else:
+                # Add to history if not already there
+                self._add_to_history(scan_id, result)
 
             # Save completed scan to database
             self._datastore.save_scan(
@@ -265,6 +295,14 @@ class ScanOrchestrator:
 
         except Exception as e:
             logger.exception(f"Background scan {scan_id} failed: {e}")
+            
+            # Push error to queue for foreground to consume (Fix Issue #6)
+            await self._error_queue.put({
+                "scan_id": scan_id,
+                "error": str(e),
+                "timestamp": datetime.now(UTC).isoformat(),
+                "error_type": type(e).__name__
+            })
 
             # Update scan status to failed
             if scan_id in self._scan_history:
@@ -333,12 +371,24 @@ class ScanOrchestrator:
         Returns:
             ScanResult object
         """
+        # Limit device count to prevent memory issues (Fix Issue #15)
+        MAX_DEVICES_PER_SCAN = 1000
+        
         # Parse results_summary if available
         devices = []
         if scan_dict.get("results_summary"):
             try:
                 summary = json.loads(scan_dict["results_summary"])
                 devices_data = summary.get("devices", [])
+                
+                # Only process up to MAX_DEVICES_PER_SCAN to prevent memory issues
+                if len(devices_data) > MAX_DEVICES_PER_SCAN:
+                    logger.warning(
+                        f"Scan {scan_dict.get('id', 'unknown')} has {len(devices_data)} devices, "
+                        f"limiting to {MAX_DEVICES_PER_SCAN}"
+                    )
+                    devices_data = devices_data[:MAX_DEVICES_PER_SCAN]
+                
                 for dev_data in devices_data:
                     devices.append(DeviceInfo(**dev_data))
             except (json.JSONDecodeError, TypeError):
@@ -398,6 +448,20 @@ class ScanOrchestrator:
         if scan_dict:
             return self._scan_dict_to_result(scan_dict)
 
+        return None
+    
+    async def get_next_error(self) -> Optional[dict]:
+        """
+        Get next error from background tasks (Fix Issue #6).
+        
+        Returns:
+            Error dictionary or None if no errors pending
+        """
+        try:
+            if not self._error_queue.empty():
+                return await asyncio.wait_for(self._error_queue.get(), timeout=0.1)
+        except asyncio.TimeoutError:
+            pass
         return None
 
     async def cancel_scan(self, scan_id: str) -> bool:
