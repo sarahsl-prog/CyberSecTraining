@@ -15,9 +15,10 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import APIKeyHeader, HTTPBearer, HTTPAuthorizationCredentials
 
 from app.config import settings
-from app.core.logging import get_logger
+from app.core.logging import get_logger, get_audit_logger
 
 logger = get_logger("auth")
+audit_logger = get_audit_logger()
 
 # Security schemes
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
@@ -65,16 +66,34 @@ async def require_api_key(
     Raises:
         HTTPException: If authentication fails
     """
+    # Get client IP for audit logging
+    client_ip = request.client.host if request.client else "unknown"
+    user_agent = request.headers.get("user-agent", "unknown")
+    
     # Allow localhost in development mode
     if is_trusted_host(request):
         logger.debug("Development mode - skipping authentication")
+        audit_logger.info(
+            f"Authentication succeeded (trusted host) | ip={client_ip} | endpoint={request.url.path} | method={request.method}",
+            extra={"ip": client_ip, "user_agent": user_agent}
+        )
         return True
 
     # Check API key
     if api_key and api_key == settings.secret_key:
         logger.warning(f"API key authentication used (insecure - use proper JWT)")
+        audit_logger.info(
+            f"Authentication succeeded (API key) | ip={client_ip} | endpoint={request.url.path} | method={request.method}",
+            extra={"ip": client_ip, "user_agent": user_agent}
+        )
         return True
 
+    # Log authentication failure
+    audit_logger.warning(
+        f"Authentication failed | ip={client_ip} | endpoint={request.url.path} | method={request.method}",
+        extra={"ip": client_ip, "user_agent": user_agent}
+    )
+    
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid or missing authentication credentials",
