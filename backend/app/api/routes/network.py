@@ -139,7 +139,9 @@ async def start_scan(request: ScanRequest) -> ScanResponse:
         429: Another scan is already running or cooldown active
         500: Internal scanner error
     """
-    logger.info(f"Scan request received: {request.target} ({request.scan_type.value})")
+    # Enhanced security logging (Fix Issue #20)
+    client_info = f"request from {request.target} with consent={request.user_consent}"
+    logger.info(f"Scan request received: {client_info}")
 
     try:
         orchestrator = get_scan_orchestrator()
@@ -153,20 +155,20 @@ async def start_scan(request: ScanRequest) -> ScanResponse:
         return _scan_result_to_response(result)
 
     except NetworkValidationError as e:
-        logger.warning(f"Network validation failed: {e}")
+        logger.warning(f"Network validation failed: {e} | target={request.target}")
         raise HTTPException(status_code=400, detail=str(e))
 
     except PermissionError as e:
-        logger.warning(f"Permission denied: {e}")
+        logger.warning(f"Permission denied: {e} | target={request.target}")
         raise HTTPException(status_code=403, detail=str(e))
 
     except RuntimeError as e:
         # Rate limiting or concurrent scan errors
-        logger.warning(f"Scan blocked: {e}")
+        logger.warning(f"Scan blocked: {e} | target={request.target}")
         raise HTTPException(status_code=429, detail=str(e))
 
     except Exception as e:
-        logger.exception(f"Scan error: {e}")
+        logger.exception(f"Scan error: {e} | target={request.target}")
         raise HTTPException(status_code=500, detail=f"Scan failed: {str(e)}")
 
 
@@ -410,6 +412,7 @@ async def validate_target(request: NetworkValidationRequest) -> NetworkValidatio
             error=None,
         )
     except NetworkValidationError as e:
+        # Expected validation errors - safe to return to client
         return NetworkValidationResponse(
             valid=False,
             target=request.target,
@@ -418,12 +421,25 @@ async def validate_target(request: NetworkValidationRequest) -> NetworkValidatio
             type="unknown",
             error=str(e),
         )
-    except Exception as e:
+    except ValueError as e:
+        # Invalid value errors (e.g., bad IP format)
+        logger.warning(f"Network validation failed for target {request.target}: {e}")
         return NetworkValidationResponse(
             valid=False,
             target=request.target,
             is_private=False,
             num_hosts=0,
             type="unknown",
-            error=f"Validation error: {str(e)}",
+            error="Invalid target format. Please use CIDR notation or IP address.",
+        )
+    except Exception as e:
+        # Unexpected errors - log details but don't expose to client (Fix Issue #11)
+        logger.error(f"Unexpected error during network validation for target {request.target}: {e}", exc_info=True)
+        return NetworkValidationResponse(
+            valid=False,
+            target=request.target,
+            is_private=False,
+            num_hosts=0,
+            type="unknown",
+            error="An error occurred during validation. Please try again.",
         )

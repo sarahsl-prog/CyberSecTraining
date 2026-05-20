@@ -11,9 +11,9 @@ class Scan(Base, IdMixin, TimestampMixin):
     __tablename__ = "scans"
 
     network_id = Column(String(36), nullable=True, index=True)
-    timestamp = Column(DateTime, nullable=True)
-    scan_type = Column(String(20), nullable=False)  # quick, deep
-    status = Column(String(20), nullable=False)  # pending, in_progress, completed, stopped, failed
+    timestamp = Column(DateTime, nullable=True, index=True)
+    scan_type = Column(String(20), nullable=False, index=True)  # quick, deep
+    status = Column(String(20), nullable=False, index=True)  # pending, in_progress, completed, stopped, failed
 
     # Scan configuration
     target_range = Column(String(50), nullable=True)  # e.g., "192.168.1.0/24"

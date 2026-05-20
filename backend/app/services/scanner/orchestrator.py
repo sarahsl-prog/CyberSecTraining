@@ -371,12 +371,24 @@ class ScanOrchestrator:
         Returns:
             ScanResult object
         """
+        # Limit device count to prevent memory issues (Fix Issue #15)
+        MAX_DEVICES_PER_SCAN = 1000
+        
         # Parse results_summary if available
         devices = []
         if scan_dict.get("results_summary"):
             try:
                 summary = json.loads(scan_dict["results_summary"])
                 devices_data = summary.get("devices", [])
+                
+                # Only process up to MAX_DEVICES_PER_SCAN to prevent memory issues
+                if len(devices_data) > MAX_DEVICES_PER_SCAN:
+                    logger.warning(
+                        f"Scan {scan_dict.get('id', 'unknown')} has {len(devices_data)} devices, "
+                        f"limiting to {MAX_DEVICES_PER_SCAN}"
+                    )
+                    devices_data = devices_data[:MAX_DEVICES_PER_SCAN]
+                
                 for dev_data in devices_data:
                     devices.append(DeviceInfo(**dev_data))
             except (json.JSONDecodeError, TypeError):

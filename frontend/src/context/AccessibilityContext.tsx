@@ -189,10 +189,11 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
   const announce = useCallback((message: string, _priority: 'polite' | 'assertive' = 'polite') => {
     // Note: priority is accepted for future ARIA live region support
     dispatch({ type: 'ANNOUNCE', payload: message });
-    // Clear announcement after screen reader has time to read it
+    // Clear announcement after screen reader has time to read it (Fix Issue #12)
+    // Increased from 1 second to 3 seconds to ensure screen readers finish announcing
     setTimeout(() => {
       dispatch({ type: 'CLEAR_ANNOUNCEMENT' });
-    }, 1000);
+    }, 3000);
   }, []);
 
   const resetToDefaults = useCallback(() => {
